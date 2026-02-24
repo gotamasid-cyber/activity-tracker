@@ -1740,6 +1740,11 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
 // ─── Supplements View ─────────────────────────────────────────────────────────
 function SupplementsView({ suppLogs, setSuppLogs, t }) {
   const today = todayStr();
+  const [vd, setVd] = useState(new Date());
+  const [sel, setSel] = useState(null); // selected day number
+
+  const SUPP_COLOR = "#8b5cf6";
+  const CREATINE_COLOR = "#06b6d4";
 
   // Toggle a supplement for a given date
   function toggle(date, key) {
@@ -1747,71 +1752,75 @@ function SupplementsView({ suppLogs, setSuppLogs, t }) {
     setSuppLogs({ ...suppLogs, [date]: { ...prev, [key]: !prev[key] } });
   }
 
-  // Build last 7 days for quick view
-  const recentDays = useMemo(() => {
-    const arr = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      d.setHours(12, 0, 0, 0);
-      arr.push({
-        ds: toDateStr(d),
-        day: DAY_SHORT[d.getDay()],
-        num: d.getDate(),
-        isToday: i === 0,
-      });
-    }
-    return arr;
-  }, []);
+  const todayEntry = suppLogs[today] || { supplements: false, creatine: false };
 
-  // Streak calculation
+  // Calendar
+  const yr = vd.getFullYear(), mo = vd.getMonth();
+  const dim = new Date(yr, mo+1, 0).getDate();
+  const fd = new Date(yr, mo, 1).getDay();
+  const canNext = new Date(yr, mo+1, 1) <= new Date();
+  const ds = d => `${yr}-${String(mo+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+
+  // Month stats
+  const monthStats = useMemo(() => {
+    const now = new Date();
+    let totalDays = 0, suppDays = 0, creatineDays = 0, bothDays = 0;
+    for (let d = 1; d <= dim; d++) {
+      const dateStr = ds(d);
+      if (dateStr > today) continue; // skip future
+      totalDays++;
+      const entry = suppLogs[dateStr];
+      if (entry?.supplements) suppDays++;
+      if (entry?.creatine) creatineDays++;
+      if (entry?.supplements && entry?.creatine) bothDays++;
+    }
+    const suppMissed = totalDays - suppDays;
+    const creatineMissed = totalDays - creatineDays;
+    const suppMissedPct = totalDays > 0 ? Math.round(suppMissed / totalDays * 100) : 0;
+    const creatineMissedPct = totalDays > 0 ? Math.round(creatineMissed / totalDays * 100) : 0;
+    const suppTakenPct = totalDays > 0 ? Math.round(suppDays / totalDays * 100) : 0;
+    const creatineTakenPct = totalDays > 0 ? Math.round(creatineDays / totalDays * 100) : 0;
+    return { totalDays, suppDays, creatineDays, bothDays, suppMissed, creatineMissed, suppMissedPct, creatineMissedPct, suppTakenPct, creatineTakenPct };
+  }, [suppLogs, yr, mo, dim, today]);
+
+  // Streak
   const suppStreak = (() => {
     let s = 0; const c = new Date();
     while (true) {
-      const ds = toDateStr(c);
-      const entry = suppLogs[ds];
+      const d = toDateStr(c);
+      const entry = suppLogs[d];
       if (entry?.supplements && entry?.creatine) { s++; c.setDate(c.getDate() - 1); }
       else break;
     }
     return s;
   })();
 
-  // Stats for last 30 days
-  const last30 = (() => {
-    let suppCount = 0, creatineCount = 0;
-    for (let i = 0; i < 30; i++) {
-      const d = new Date(); d.setDate(d.getDate() - i); d.setHours(12,0,0,0);
-      const entry = suppLogs[toDateStr(d)];
-      if (entry?.supplements) suppCount++;
-      if (entry?.creatine) creatineCount++;
-    }
-    return { suppCount, creatineCount };
-  })();
+  const cells = [];
+  for (let i = 0; i < fd; i++) cells.push(null);
+  for (let d = 1; d <= dim; d++) cells.push(d);
 
-  const todayEntry = suppLogs[today] || { supplements: false, creatine: false };
-
-  const SUPP_COLOR = "#8b5cf6";
-  const CREATINE_COLOR = "#06b6d4";
+  const selDateStr = sel ? ds(sel) : null;
+  const selEntry = sel ? (suppLogs[ds(sel)] || { supplements: false, creatine: false }) : null;
 
   return (
     <div>
       {/* Today's check-in */}
-      <Card t={t} style={{padding:"18px",marginBottom:"14px"}}>
+      <Card t={t} style={{padding:"16px",marginBottom:"14px"}}>
         <Label t={t}>TODAY</Label>
-        <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
+        <div style={{display:"flex",gap:"10px"}}>
           {[
             { key: "supplements", label: "Supplements", icon: "💊", color: SUPP_COLOR, checked: todayEntry.supplements },
             { key: "creatine",    label: "Creatine",    icon: "⚡", color: CREATINE_COLOR, checked: todayEntry.creatine },
           ].map(item => (
             <button key={item.key} onClick={() => toggle(today, item.key)} style={{
-              display:"flex", alignItems:"center", gap:"14px",
-              padding:"16px", borderRadius:"12px", cursor:"pointer",
-              fontFamily:"inherit", border:"none", transition:"all 0.15s",
+              flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:"8px",
+              padding:"14px 8px", borderRadius:"12px", cursor:"pointer",
+              fontFamily:"inherit", transition:"all 0.15s",
               background: item.checked ? item.color+"18" : t.surface2,
               border: `1.5px solid ${item.checked ? item.color : t.border}`,
             }}>
               <div style={{
-                width:"28px", height:"28px", borderRadius:"8px", flexShrink:0,
+                width:"28px", height:"28px", borderRadius:"8px",
                 background: item.checked ? item.color : t.surface2,
                 border: `2px solid ${item.checked ? item.color : t.border}`,
                 display:"flex", alignItems:"center", justifyContent:"center",
@@ -1819,91 +1828,152 @@ function SupplementsView({ suppLogs, setSuppLogs, t }) {
               }}>
                 {item.checked ? "✓" : ""}
               </div>
-              <span style={{fontSize:"18px"}}>{item.icon}</span>
-              <span style={{fontSize:"15px",fontWeight:"600",color: item.checked ? item.color : t.text}}>
+              <span style={{fontSize:"16px"}}>{item.icon}</span>
+              <span style={{fontSize:"13px",fontWeight:"600",color: item.checked ? item.color : t.text}}>
                 {item.label}
               </span>
-              {item.checked && (
-                <span style={{marginLeft:"auto",fontSize:"13px",color:item.color,fontWeight:"500"}}>Done</span>
-              )}
             </button>
           ))}
         </div>
       </Card>
 
-      {/* Quick stats */}
+      {/* Month stats with missed percentages */}
       <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"8px",marginBottom:"14px"}}>
-        {[
-          { label:"Streak", value: suppStreak+"d", color: suppStreak > 0 ? "#f59e0b" : t.textMuted },
-          { label:"Supps/30d", value: last30.suppCount, color: SUPP_COLOR },
-          { label:"Creatine/30d", value: last30.creatineCount, color: CREATINE_COLOR },
-        ].map(s=>(
-          <Card t={t} key={s.label} style={{padding:"12px 8px",textAlign:"center"}}>
-            <div style={{fontSize:"15px",fontWeight:"700",color:s.color}}>{s.value}</div>
-            <div style={{fontSize:"11px",color:t.textMuted,letterSpacing:"0.5px",marginTop:"3px"}}>{s.label.toUpperCase()}</div>
-          </Card>
-        ))}
+        <Card t={t} style={{padding:"12px 8px",textAlign:"center"}}>
+          <div style={{fontSize:"15px",fontWeight:"700",color:suppStreak > 0 ? "#f59e0b" : t.textMuted}}>{suppStreak}d</div>
+          <div style={{fontSize:"11px",color:t.textMuted,letterSpacing:"0.5px",marginTop:"3px"}}>STREAK</div>
+        </Card>
+        <Card t={t} style={{padding:"12px 8px",textAlign:"center"}}>
+          <div style={{fontSize:"15px",fontWeight:"700",color:monthStats.suppMissedPct > 20 ? "#ef4444" : "#22c55e"}}>{monthStats.suppMissedPct}%</div>
+          <div style={{fontSize:"11px",color:t.textMuted,letterSpacing:"0.5px",marginTop:"3px"}}>💊 MISSED</div>
+        </Card>
+        <Card t={t} style={{padding:"12px 8px",textAlign:"center"}}>
+          <div style={{fontSize:"15px",fontWeight:"700",color:monthStats.creatineMissedPct > 20 ? "#ef4444" : "#22c55e"}}>{monthStats.creatineMissedPct}%</div>
+          <div style={{fontSize:"11px",color:t.textMuted,letterSpacing:"0.5px",marginTop:"3px"}}>⚡ MISSED</div>
+        </Card>
       </div>
 
-      {/* Last 7 days */}
-      <Label t={t}>THIS WEEK</Label>
+      {/* Adherence bars */}
       <Card t={t} style={{padding:"14px 16px",marginBottom:"14px"}}>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"6px"}}>
-          {recentDays.map(d => {
-            const entry = suppLogs[d.ds] || { supplements: false, creatine: false };
+        {[
+          { label:"Supplements", color:SUPP_COLOR, taken:monthStats.suppDays, total:monthStats.totalDays, pct:monthStats.suppTakenPct },
+          { label:"Creatine", color:CREATINE_COLOR, taken:monthStats.creatineDays, total:monthStats.totalDays, pct:monthStats.creatineTakenPct },
+        ].map(item => (
+          <div key={item.label} style={{marginBottom:"10px"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"5px"}}>
+              <span style={{fontSize:"13px",color:t.text,fontWeight:"500"}}>{item.label}</span>
+              <span style={{fontSize:"13px",color:t.textSub}}>{item.taken}/{item.total} days · {item.pct}%</span>
+            </div>
+            <div style={{background:t.surface2,borderRadius:"4px",height:"6px",overflow:"hidden"}}>
+              <div style={{height:"100%",width:item.pct+"%",background:item.color,borderRadius:"4px",transition:"width 0.5s"}}/>
+            </div>
+          </div>
+        ))}
+      </Card>
+
+      {/* Calendar */}
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"14px"}}>
+        <button onClick={()=>{setSel(null);setVd(new Date(yr,mo-1,1));}} style={{background:"none",border:"none",cursor:"pointer",color:t.textSub,fontSize:"16px",padding:"4px 8px"}}>‹</button>
+        <span style={{fontSize:"15px",fontWeight:"600",color:t.text}}>{MONTHS[mo]} {yr}</span>
+        <button onClick={()=>{setSel(null);setVd(new Date(yr,mo+1,1));}} disabled={!canNext} style={{background:"none",border:"none",cursor:canNext?"pointer":"default",color:canNext?t.textSub:t.border,fontSize:"16px",padding:"4px 8px"}}>›</button>
+      </div>
+
+      <Card t={t} style={{padding:"12px 14px",marginBottom:"14px"}}>
+        {/* Day labels */}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"3px",marginBottom:"4px"}}>
+          {DAY_LABELS.map((d,i)=><div key={i} style={{textAlign:"center",fontSize:"12px",color:t.textMuted,padding:"3px 0"}}>{d}</div>)}
+        </div>
+
+        {/* Day cells */}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"3px"}}>
+          {cells.map((d,i)=>{
+            if (!d) return <div key={"e"+i}/>;
+            const dateStr = ds(d);
+            const isFuture = dateStr > today;
+            const isToday = dateStr === today;
+            const isSel = sel === d;
+            const entry = suppLogs[dateStr] || { supplements: false, creatine: false };
             const both = entry.supplements && entry.creatine;
-            const either = entry.supplements || entry.creatine;
+            const suppOnly = entry.supplements && !entry.creatine;
+            const creatineOnly = !entry.supplements && entry.creatine;
+            const missed = !isFuture && !entry.supplements && !entry.creatine;
+
+            let bgColor = null;
+            if (both) bgColor = SUPP_COLOR;
+            else if (suppOnly) bgColor = SUPP_COLOR+"88";
+            else if (creatineOnly) bgColor = CREATINE_COLOR+"88";
+            else if (missed && !isToday) bgColor = "#ef4444";
+
             return (
-              <div key={d.ds} style={{textAlign:"center"}}>
-                <div style={{fontSize:"11px",color:d.isToday?t.accent:t.textMuted,fontWeight:d.isToday?"700":"400",marginBottom:"6px"}}>
-                  {d.isToday ? "TOD" : d.day}
-                </div>
-                <div style={{
-                  width:"100%",aspectRatio:"1",borderRadius:"8px",
-                  display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:"2px",
-                  background: both ? SUPP_COLOR+"22" : t.surface2,
-                  border: `1.5px solid ${both ? SUPP_COLOR : either ? CREATINE_COLOR+"66" : t.border}`,
+              <div key={d} onClick={()=>!isFuture && setSel(isSel ? null : d)} style={{
+                aspectRatio:"1", minHeight:"38px", borderRadius:"7px",
+                background: bgColor || (isFuture ? "transparent" : t.surface2),
+                border: isSel ? `2px solid ${t.text}` : isToday && !bgColor ? `2px solid ${t.accent}` : `1px solid ${bgColor ? bgColor+"44" : t.border}`,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                cursor: isFuture ? "default" : "pointer",
+                opacity: isFuture ? 0.3 : missed ? 0.65 : 1,
+                transition:"all 0.1s",
+              }}>
+                <span style={{
+                  fontSize:"12px", fontWeight: bgColor || isToday ? "700" : "400",
+                  color: bgColor ? "#fff" : isToday ? t.accent : t.textSub,
+                  textShadow: bgColor ? "0 1px 2px rgba(0,0,0,0.3)" : "none",
                 }}>
-                  <div style={{fontSize:"10px"}}>
-                    {entry.supplements ? "💊" : <span style={{opacity:0.2}}>💊</span>}
-                  </div>
-                  <div style={{fontSize:"10px"}}>
-                    {entry.creatine ? "⚡" : <span style={{opacity:0.2}}>⚡</span>}
-                  </div>
-                </div>
+                  {d}
+                </span>
               </div>
             );
           })}
+        </div>
+
+        {/* Legend */}
+        <div style={{display:"flex",gap:"8px",marginTop:"12px",flexWrap:"wrap"}}>
+          {[
+            [SUPP_COLOR,"Both"],
+            [SUPP_COLOR+"88","💊 only"],
+            [CREATINE_COLOR+"88","⚡ only"],
+            ["#ef4444","Missed"],
+          ].map(([bg,lbl])=>(
+            <div key={lbl} style={{display:"flex",alignItems:"center",gap:"5px",fontSize:"12px",color:t.textSub}}>
+              <div style={{width:"10px",height:"10px",borderRadius:"3px",background:bg}}/>
+              {lbl}
+            </div>
+          ))}
         </div>
       </Card>
 
-      {/* Backfill - tap past days */}
-      <Label t={t}>BACKFILL A DAY</Label>
-      <Card t={t} style={{padding:"14px 16px"}}>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"6px"}}>
-          {recentDays.filter(d=>!d.isToday).map(d => {
-            const entry = suppLogs[d.ds] || { supplements: false, creatine: false };
-            return (
-              <div key={d.ds} style={{textAlign:"center"}}>
-                <div style={{fontSize:"11px",color:t.textMuted,marginBottom:"4px"}}>{d.day} {d.num}</div>
-                <button onClick={() => toggle(d.ds, "supplements")} style={{
-                  width:"100%",padding:"6px 0",borderRadius:"6px 6px 0 0",cursor:"pointer",
-                  border:`1px solid ${entry.supplements ? SUPP_COLOR+"66" : t.border}`,
-                  borderBottom:"none",
-                  background: entry.supplements ? SUPP_COLOR+"22" : "transparent",
-                  fontSize:"12px",fontFamily:"inherit",color:entry.supplements ? SUPP_COLOR : t.textMuted,
-                }}>💊</button>
-                <button onClick={() => toggle(d.ds, "creatine")} style={{
-                  width:"100%",padding:"6px 0",borderRadius:"0 0 6px 6px",cursor:"pointer",
-                  border:`1px solid ${entry.creatine ? CREATINE_COLOR+"66" : t.border}`,
-                  background: entry.creatine ? CREATINE_COLOR+"22" : "transparent",
-                  fontSize:"12px",fontFamily:"inherit",color:entry.creatine ? CREATINE_COLOR : t.textMuted,
-                }}>⚡</button>
-              </div>
-            );
-          })}
-        </div>
-      </Card>
+      {/* Selected day detail — tap to toggle */}
+      {sel && !( ds(sel) > today ) && (
+        <Card t={t} style={{padding:"14px 16px"}}>
+          <div style={{fontSize:"13px",color:t.textSub,marginBottom:"10px"}}>{formatDate(ds(sel))}</div>
+          <div style={{display:"flex",gap:"10px"}}>
+            {[
+              { key:"supplements", label:"Supplements", icon:"💊", color:SUPP_COLOR, checked:selEntry.supplements },
+              { key:"creatine", label:"Creatine", icon:"⚡", color:CREATINE_COLOR, checked:selEntry.creatine },
+            ].map(item => (
+              <button key={item.key} onClick={()=>toggle(ds(sel), item.key)} style={{
+                flex:1, display:"flex", alignItems:"center", gap:"10px",
+                padding:"12px", borderRadius:"10px", cursor:"pointer",
+                fontFamily:"inherit", transition:"all 0.15s",
+                background: item.checked ? item.color+"18" : t.surface2,
+                border: `1.5px solid ${item.checked ? item.color : t.border}`,
+              }}>
+                <div style={{
+                  width:"22px", height:"22px", borderRadius:"6px",
+                  background: item.checked ? item.color : "transparent",
+                  border: `2px solid ${item.checked ? item.color : t.border}`,
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  fontSize:"12px", color:"#fff",
+                }}>
+                  {item.checked ? "✓" : ""}
+                </div>
+                <span style={{fontSize:"14px"}}>{item.icon}</span>
+                <span style={{fontSize:"13px",fontWeight:"600",color:item.checked ? item.color : t.text}}>{item.label}</span>
+              </button>
+            ))}
+          </div>
+        </Card>
+      )}
     </div>
   );
 }

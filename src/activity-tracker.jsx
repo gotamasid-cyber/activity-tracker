@@ -190,7 +190,7 @@ function tokens(dark) {
 
 // ─── Tiny components ──────────────────────────────────────────────────────────
 function Label({ children, t }) {
-  return <div style={{fontSize:"10px",letterSpacing:"2px",color:t.textSub,marginBottom:"10px",fontWeight:"500"}}>{children}</div>;
+  return <div style={{fontSize:"12px",letterSpacing:"2px",color:t.textSub,marginBottom:"10px",fontWeight:"500"}}>{children}</div>;
 }
 
 function Input({ t, ...props }) {
@@ -198,7 +198,7 @@ function Input({ t, ...props }) {
     <input {...props} style={{
       width:"100%", background:t.surface2, border:`1px solid ${t.border}`,
       color:t.text, padding:"11px 13px", borderRadius:"9px",
-      fontSize:"15px", fontFamily:"inherit", boxSizing:"border-box",
+      fontSize:"14px", fontFamily:"inherit", boxSizing:"border-box",
       outline:"none",
       ...props.style,
     }}/>
@@ -210,7 +210,7 @@ function Textarea({ t, ...props }) {
     <textarea {...props} style={{
       width:"100%", background:t.surface2, border:`1px solid ${t.border}`,
       color:t.text, padding:"11px 13px", borderRadius:"9px",
-      fontSize:"15px", fontFamily:"inherit", boxSizing:"border-box",
+      fontSize:"14px", fontFamily:"inherit", boxSizing:"border-box",
       resize:"none", outline:"none",
       ...props.style,
     }}/>
@@ -223,8 +223,8 @@ function Pill({ active, color, onClick, children, t }) {
       background: active ? (color+"18") : t.pill,
       color:      active ? color : t.textSub,
       border:     `1px solid ${active ? color+"55" : t.pillBorder}`,
-      padding:"8px 14px", borderRadius:"100px", cursor:"pointer",
-      fontSize:"13px", fontWeight: active?"600":"400",
+      padding:"10px 16px", borderRadius:"100px", cursor:"pointer",
+      fontSize:"14px", fontWeight: active?"600":"400",
       fontFamily:"inherit", transition:"all 0.12s",
       display:"flex", alignItems:"center", gap:"5px",
       whiteSpace:"nowrap",
@@ -295,7 +295,7 @@ function FreqChart({ logs, tree, t }) {
       </svg>
       <div style={{display:"flex",gap:"14px",marginTop:"6px"}}>
         {[[t.accent,"Active"],["#8b5cf6","Rest/Recovery"]].map(([c,lbl])=>(
-          <div key={lbl} style={{display:"flex",alignItems:"center",gap:"5px",fontSize:"10px",color:t.textSub}}>
+          <div key={lbl} style={{display:"flex",alignItems:"center",gap:"5px",fontSize:"12px",color:t.textSub}}>
             <div style={{width:"8px",height:"8px",borderRadius:"2px",background:c}}/>
             {lbl}
           </div>
@@ -315,12 +315,12 @@ function OuraBadge({ data, t }) {
   ].filter(Boolean);
   return (
     <div style={{marginTop:"10px",padding:"12px 14px",background:t.surface2,borderRadius:"10px",border:`1px solid ${t.border}`}}>
-      <div style={{fontSize:"10px",color:t.textSub,letterSpacing:"2px",marginBottom:"8px"}}>💍 OURA · {data.date}</div>
+      <div style={{fontSize:"12px",color:t.textSub,letterSpacing:"2px",marginBottom:"8px"}}>💍 OURA · {data.date}</div>
       <div style={{display:"flex",gap:"20px"}}>
         {items.map(it=>(
           <div key={it.label}>
-            <div style={{fontSize:"18px",fontWeight:"600",color:it.color}}>{it.value}</div>
-            <div style={{fontSize:"9px",color:t.textSub,letterSpacing:"1px"}}>{it.label.toUpperCase()}</div>
+            <div style={{fontSize:"12px",fontWeight:"600",color:it.color}}>{it.value}</div>
+            <div style={{fontSize:"14px",color:t.textSub,letterSpacing:"1px"}}>{it.label.toUpperCase()}</div>
           </div>
         ))}
       </div>
@@ -366,13 +366,13 @@ function CalendarView({ logs, ouraData, tree, mtProgress, t }) {
   return (
     <div>
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"20px"}}>
-        <button onClick={()=>{setSel(null);setVd(new Date(yr,mo-1,1));}} style={{background:"none",border:"none",cursor:"pointer",color:t.textSub,fontSize:"20px",padding:"4px 8px"}}>‹</button>
-        <span style={{fontSize:"15px",fontWeight:"600",color:t.text}}>{MONTHS[mo]} {yr}</span>
-        <button onClick={()=>{setSel(null);setVd(new Date(yr,mo+1,1));}} disabled={!canNext} style={{background:"none",border:"none",cursor:canNext?"pointer":"default",color:canNext?t.textSub:t.border,fontSize:"20px",padding:"4px 8px"}}>›</button>
+        <button onClick={()=>{setSel(null);setVd(new Date(yr,mo-1,1));}} style={{background:"none",border:"none",cursor:"pointer",color:t.textSub,fontSize:"12px",padding:"4px 8px"}}>‹</button>
+        <span style={{fontSize:"16px",fontWeight:"600",color:t.text}}>{MONTHS[mo]} {yr}</span>
+        <button onClick={()=>{setSel(null);setVd(new Date(yr,mo+1,1));}} disabled={!canNext} style={{background:"none",border:"none",cursor:canNext?"pointer":"default",color:canNext?t.textSub:t.border,fontSize:"12px",padding:"4px 8px"}}>›</button>
       </div>
 
       <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"3px",marginBottom:"3px"}}>
-        {DAY_LABELS.map((d,i)=><div key={i} style={{textAlign:"center",fontSize:"10px",color:t.textMuted,padding:"3px 0"}}>{d}</div>)}
+        {DAY_LABELS.map((d,i)=><div key={i} style={{textAlign:"center",fontSize:"12px",color:t.textMuted,padding:"3px 0"}}>{d}</div>)}
       </div>
 
       <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"3px"}}>
@@ -439,7 +439,7 @@ function CalendarView({ logs, ouraData, tree, mtProgress, t }) {
 
               {/* Date number */}
               <span style={{
-                fontSize:"11px", fontWeight:textWeight, zIndex:1, lineHeight:1,
+                fontSize:"14px", fontWeight:textWeight, zIndex:1, lineHeight:1,
                 color: (fillColor || multiColor) ? "#fff" : todC ? t.accent : t.textSub,
                 textShadow: (fillColor || multiColor) ? "0 1px 2px rgba(0,0,0,0.3)" : "none",
               }}>
@@ -461,7 +461,7 @@ function CalendarView({ logs, ouraData, tree, mtProgress, t }) {
           ["#eab308","Rest/Recovery"],
           [t.surface2,"No data"],
         ].map(([bg,lbl])=>(
-          <div key={lbl} style={{display:"flex",alignItems:"center",gap:"5px",fontSize:"10px",color:t.textSub}}>
+          <div key={lbl} style={{display:"flex",alignItems:"center",gap:"5px",fontSize:"12px",color:t.textSub}}>
             <div style={{width:"10px",height:"10px",borderRadius:"3px",background:bg,border:`1px solid ${bg==="transparent"||bg===t.surface2?t.border:bg+"44"}`}}/>
             {lbl}
           </div>
@@ -470,9 +470,9 @@ function CalendarView({ logs, ouraData, tree, mtProgress, t }) {
 
       {sel&&(
         <Card t={t} style={{marginTop:"14px",padding:"14px 16px"}}>
-          <div style={{fontSize:"11px",color:t.textSub,marginBottom:"10px"}}>{formatDate(ds(sel))}</div>
+          <div style={{fontSize:"14px",color:t.textSub,marginBottom:"10px"}}>{formatDate(ds(sel))}</div>
           {!selLogs.length&&!selMT.length&&!selOura?(
-            <div style={{fontSize:"13px",color:t.textMuted}}>Nothing logged.</div>
+            <div style={{fontSize:"14px",color:t.textMuted}}>Nothing logged.</div>
           ):(
             <>
               {/* Regular activity logs */}
@@ -482,8 +482,8 @@ function CalendarView({ logs, ouraData, tree, mtProgress, t }) {
                   <div key={log.id} style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"8px"}}>
                     <span style={{fontSize:"18px"}}>{info.icon}</span>
                     <div>
-                      <div style={{fontSize:"13px",fontWeight:"600",color:info.color}}>{displayLabel(info)}{log.duration?" · "+log.duration+" min":""}</div>
-                      {log.notes&&<div style={{fontSize:"11px",color:t.textSub,fontStyle:"italic"}}>{log.notes}</div>}
+                      <div style={{fontSize:"14px",fontWeight:"600",color:info.color}}>{displayLabel(info)}{log.duration?" · "+log.duration+" min":""}</div>
+                      {log.notes&&<div style={{fontSize:"14px",color:t.textSub,fontStyle:"italic"}}>{log.notes}</div>}
                     </div>
                   </div>
                 );
@@ -491,12 +491,12 @@ function CalendarView({ logs, ouraData, tree, mtProgress, t }) {
               {/* MT sessions */}
               {selMT.map(sess=>(
                 <div key={sess.key} style={{display:"flex",alignItems:"flex-start",gap:"10px",marginBottom:"8px",padding:"8px 10px",background:MT_COLOR+"10",borderRadius:"8px",border:`1px solid ${MT_COLOR}33`}}>
-                  <span style={{fontSize:"16px",marginTop:"1px"}}>{sess.icon}</span>
+                  <span style={{fontSize:"12px",marginTop:"1px"}}>{sess.icon}</span>
                   <div>
                     <div style={{fontSize:"12px",fontWeight:"700",color:MT_COLOR}}>
                       Mobility Toolkit · Wk{sess.week} Day {sess.day}
                     </div>
-                    <div style={{fontSize:"11px",color:t.textSub,marginTop:"2px"}}>{sess.focus}</div>
+                    <div style={{fontSize:"14px",color:t.textSub,marginTop:"2px"}}>{sess.focus}</div>
                   </div>
                 </div>
               ))}
@@ -566,7 +566,7 @@ function ActivityManager({ tree, setTree, t }) {
 
   return (
     <div>
-      <p style={{fontSize:"13px",color:t.textSub,marginTop:0,lineHeight:"1.6"}}>
+      <p style={{fontSize:"14px",color:t.textSub,marginTop:0,lineHeight:"1.6"}}>
         Type a name — icon and color are assigned automatically. Add sub-categories to any activity.
       </p>
 
@@ -580,7 +580,7 @@ function ActivityManager({ tree, setTree, t }) {
             background: preview?preview.color+"22":t.surface2,
             border:`1px solid ${preview?preview.color+"55":t.border}`,
             display:"flex",alignItems:"center",justifyContent:"center",
-            fontSize:"22px",transition:"all 0.2s",
+            fontSize:"12px",transition:"all 0.2s",
           }}>
             {preview?.icon||"?"}
           </div>
@@ -604,7 +604,7 @@ function ActivityManager({ tree, setTree, t }) {
           border:`1px solid ${newLabel.trim()?t.accent:t.border}`,
           padding:"10px 20px",borderRadius:"8px",
           cursor:newLabel.trim()?"pointer":"default",
-          fontSize:"13px",fontFamily:"inherit",fontWeight:"600",transition:"all 0.12s",
+          fontSize:"14px",fontFamily:"inherit",fontWeight:"600",transition:"all 0.12s",
         }}>Add Activity</button>
       </Card>
 
@@ -627,18 +627,18 @@ function ActivityManager({ tree, setTree, t }) {
               <div style={{
                 width:"32px",height:"32px",borderRadius:"8px",flexShrink:0,
                 background:a.color+"20",border:`1px solid ${a.color}44`,
-                display:"flex",alignItems:"center",justifyContent:"center",fontSize:"16px",
+                display:"flex",alignItems:"center",justifyContent:"center",fontSize:"12px",
               }}>{a.icon}</div>
               <div style={{flex:1}}>
-                <div style={{fontSize:"13px",fontWeight:"600",color:t.text}}>{a.label}</div>
-                {a.note&&<div style={{fontSize:"10px",color:t.textSub,marginTop:"1px"}}>{a.note}</div>}
-                {!a.note&&<div style={{fontSize:"10px",color:t.textMuted}}>{(a.sub||[]).length} sub-activities</div>}
+                <div style={{fontSize:"14px",fontWeight:"600",color:t.text}}>{a.label}</div>
+                {a.note&&<div style={{fontSize:"12px",color:t.textSub,marginTop:"1px"}}>{a.note}</div>}
+                {!a.note&&<div style={{fontSize:"12px",color:t.textMuted}}>{(a.sub||[]).length} sub-activities</div>}
               </div>
               <div style={{display:"flex",alignItems:"center",gap:"8px"}}>
                 {a.custom&&(
-                  <button onClick={e=>{e.stopPropagation();removeTop(a.id);}} style={{background:"none",border:"none",color:t.textMuted,cursor:"pointer",fontSize:"16px",lineHeight:1,padding:"2px 6px"}}>×</button>
+                  <button onClick={e=>{e.stopPropagation();removeTop(a.id);}} style={{background:"none",border:"none",color:t.textMuted,cursor:"pointer",fontSize:"12px",lineHeight:1,padding:"2px 6px"}}>×</button>
                 )}
-                <span style={{color:t.textMuted,fontSize:"11px"}}>{expanded[a.id]?"▲":"▼"}</span>
+                <span style={{color:t.textMuted,fontSize:"14px"}}>{expanded[a.id]?"▲":"▼"}</span>
               </div>
             </div>
 
@@ -647,9 +647,9 @@ function ActivityManager({ tree, setTree, t }) {
               <div style={{padding:"10px 14px 14px"}}>
                 {(a.sub||[]).map(s=>(
                   <div key={s.id} style={{display:"flex",alignItems:"center",gap:"8px",padding:"7px 0",borderBottom:`1px solid ${t.border}`}}>
-                    <span style={{fontSize:"15px",width:"22px",textAlign:"center"}}>{s.icon}</span>
+                    <span style={{fontSize:"14px",width:"22px",textAlign:"center"}}>{s.icon}</span>
                     <span style={{flex:1,fontSize:"12px",color:t.text}}>{s.label}</span>
-                    {s.custom&&<button onClick={()=>removeSub(a.id,s.id)} style={{background:"none",border:"none",color:t.textMuted,cursor:"pointer",fontSize:"14px",padding:"2px 5px"}}>×</button>}
+                    {s.custom&&<button onClick={()=>removeSub(a.id,s.id)} style={{background:"none",border:"none",color:t.textMuted,cursor:"pointer",fontSize:"12px",padding:"2px 5px"}}>×</button>}
                   </div>
                 ))}
                 <div style={{display:"flex",gap:"8px",marginTop:"10px",alignItems:"center"}}>
@@ -658,12 +658,12 @@ function ActivityManager({ tree, setTree, t }) {
                     value={newSub[a.id]||""}
                     onChange={e=>setNewSub(ns=>({...ns,[a.id]:e.target.value}))}
                     onKeyDown={e=>e.key==="Enter"&&addSub(a.id)}
-                    style={{flex:1,fontSize:"13px",padding:"8px 10px"}}
+                    style={{flex:1,fontSize:"14px",padding:"8px 10px"}}
                   />
                   <button onClick={()=>addSub(a.id)} style={{
                     background:t.accent,color:"#fff",border:"none",
                     padding:"8px 14px",borderRadius:"8px",cursor:"pointer",
-                    fontSize:"13px",fontWeight:"600",fontFamily:"inherit",whiteSpace:"nowrap",
+                    fontSize:"14px",fontWeight:"600",fontFamily:"inherit",whiteSpace:"nowrap",
                   }}>+ Add</button>
                 </div>
               </div>
@@ -834,12 +834,12 @@ function MobilityView({ mtProgress, setMtProgress, t }) {
       <Card t={t} style={{padding:"16px 18px",marginBottom:"18px",borderTop:`3px solid ${MT_COLOR}`}}>
         <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:"14px"}}>
           <div>
-            <div style={{fontSize:"16px",fontWeight:"700",color:t.text}}>Mobility Toolkit</div>
-            <div style={{fontSize:"11px",color:t.textSub,marginTop:"2px"}}>by Moves Method · 4 weeks · 24 sessions</div>
+            <div style={{fontSize:"12px",fontWeight:"700",color:t.text}}>Mobility Toolkit</div>
+            <div style={{fontSize:"14px",color:t.textSub,marginTop:"2px"}}>by Moves Method · 4 weeks · 24 sessions</div>
           </div>
           <div style={{textAlign:"right"}}>
-            <div style={{fontSize:"22px",fontWeight:"700",color:MT_COLOR}}>{pct}%</div>
-            <div style={{fontSize:"10px",color:t.textMuted}}>{totalDone}/{MT_TOTAL} done</div>
+            <div style={{fontSize:"12px",fontWeight:"700",color:MT_COLOR}}>{pct}%</div>
+            <div style={{fontSize:"12px",color:t.textMuted}}>{totalDone}/{MT_TOTAL} done</div>
           </div>
         </div>
 
@@ -855,13 +855,13 @@ function MobilityView({ mtProgress, setMtProgress, t }) {
               <div key={wk.week}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"4px"}}>
                   <div style={{display:"flex",alignItems:"center",gap:"6px"}}>
-                    <span style={{fontSize:"11px",fontWeight:isCurrent?"700":"500",color:isCurrent?MT_COLOR:wDone?t.textSub:t.text}}>
+                    <span style={{fontSize:"14px",fontWeight:isCurrent?"700":"500",color:isCurrent?MT_COLOR:wDone?t.textSub:t.text}}>
                       Week {wk.week}
                     </span>
-                    {isCurrent && <span style={{fontSize:"9px",background:MT_COLOR,color:"#fff",padding:"1px 5px",borderRadius:"6px",letterSpacing:"0.5px"}}>NOW</span>}
-                    {wDone    && <span style={{fontSize:"10px",color:MT_COLOR}}>✓</span>}
+                    {isCurrent && <span style={{fontSize:"14px",background:MT_COLOR,color:"#fff",padding:"1px 5px",borderRadius:"6px",letterSpacing:"0.5px"}}>NOW</span>}
+                    {wDone    && <span style={{fontSize:"12px",color:MT_COLOR}}>✓</span>}
                   </div>
-                  <span style={{fontSize:"10px",color:t.textMuted}}>{done}/{total}</span>
+                  <span style={{fontSize:"12px",color:t.textMuted}}>{done}/{total}</span>
                 </div>
                 <div style={{background:t.surface2,borderRadius:"4px",height:"5px",overflow:"hidden"}}>
                   <div style={{
@@ -876,7 +876,7 @@ function MobilityView({ mtProgress, setMtProgress, t }) {
         </div>
 
         {totalDone===MT_TOTAL&&(
-          <div style={{marginTop:"12px",fontSize:"13px",color:MT_COLOR,fontWeight:"600"}}>
+          <div style={{marginTop:"12px",fontSize:"14px",color:MT_COLOR,fontWeight:"600"}}>
             🎉 Program complete! Great work.
           </div>
         )}
@@ -903,8 +903,8 @@ function MobilityView({ mtProgress, setMtProgress, t }) {
                 color:wDone?"#fff":t.textSub,
               }}>{wDone?"✓":wk.week}</div>
               <div style={{flex:1}}>
-                <div style={{fontSize:"14px",fontWeight:"600",color:t.text}}>Week {wk.week}</div>
-                <div style={{fontSize:"11px",color:t.textSub,marginTop:"1px"}}>{done}/{total} sessions</div>
+                <div style={{fontSize:"12px",fontWeight:"600",color:t.text}}>Week {wk.week}</div>
+                <div style={{fontSize:"14px",color:t.textSub,marginTop:"1px"}}>{done}/{total} sessions</div>
               </div>
               {/* Mini bar */}
               <div style={{width:"48px"}}>
@@ -912,7 +912,7 @@ function MobilityView({ mtProgress, setMtProgress, t }) {
                   <div style={{height:"100%",width:(done/total*100)+"%",background:MT_COLOR,borderRadius:"4px",transition:"width 0.4s"}}/>
                 </div>
               </div>
-              <span style={{color:t.textMuted,fontSize:"11px",marginLeft:"4px"}}>{isOpen?"▲":"▼"}</span>
+              <span style={{color:t.textMuted,fontSize:"14px",marginLeft:"4px"}}>{isOpen?"▲":"▼"}</span>
             </div>
 
             {/* Day list */}
@@ -942,7 +942,7 @@ function MobilityView({ mtProgress, setMtProgress, t }) {
                             background:isDone?MT_COLOR:isEditingDate?MT_COLOR+"33":t.surface2,
                             border:`1.5px solid ${isDone||isEditingDate?MT_COLOR:isCurrent?MT_COLOR+"88":t.border}`,
                             cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",
-                            fontSize:"13px",color:"#fff",transition:"all 0.15s",
+                            fontSize:"14px",color:"#fff",transition:"all 0.15s",
                           }}>
                           {isDone?"✓":isEditingDate?"…":""}
                         </button>
@@ -953,15 +953,15 @@ function MobilityView({ mtProgress, setMtProgress, t }) {
                             <span style={{fontSize:"12px",fontWeight:"600",color:isDone?t.textSub:t.text}}>
                               Day {d.day}
                             </span>
-                            {isCurrent&&!isDone&&<span style={{fontSize:"9px",background:MT_COLOR,color:"#fff",padding:"1px 6px",borderRadius:"10px",fontWeight:"600",letterSpacing:"0.5px"}}>NEXT</span>}
-                            {isFlow&&<span style={{fontSize:"9px",background:t.surface2,color:t.textSub,padding:"1px 6px",borderRadius:"10px",border:`1px solid ${t.border}`}}>FLOW</span>}
+                            {isCurrent&&!isDone&&<span style={{fontSize:"14px",background:MT_COLOR,color:"#fff",padding:"1px 6px",borderRadius:"10px",fontWeight:"600",letterSpacing:"0.5px"}}>NEXT</span>}
+                            {isFlow&&<span style={{fontSize:"14px",background:t.surface2,color:t.textSub,padding:"1px 6px",borderRadius:"10px",border:`1px solid ${t.border}`}}>FLOW</span>}
                           </div>
 
                           {/* Focus tags */}
                           <div style={{display:"flex",flexWrap:"wrap",gap:"4px",marginBottom:"6px"}}>
                             {d.tags.map(tag=>(
                               <span key={tag} style={{
-                                fontSize:"10px",padding:"2px 7px",borderRadius:"10px",
+                                fontSize:"12px",padding:"2px 7px",borderRadius:"10px",
                                 background:(TAG_COLORS[tag]||MT_COLOR)+"18",
                                 color:isDone?t.textMuted:(TAG_COLORS[tag]||MT_COLOR),
                                 border:`1px solid ${isDone?t.border:(TAG_COLORS[tag]||MT_COLOR)+"33"}`,
@@ -973,12 +973,12 @@ function MobilityView({ mtProgress, setMtProgress, t }) {
                           {/* Completed: show date (tappable to change) */}
                           {isDone&&prog?.date&&!isEditingDate&&(
                             <div style={{display:"flex",alignItems:"center",gap:"8px"}}>
-                              <span style={{fontSize:"10px",color:MT_COLOR,fontWeight:"500"}}>
+                              <span style={{fontSize:"12px",color:MT_COLOR,fontWeight:"500"}}>
                                 ✓ {formatDate(prog.date)}
                               </span>
                               <button onClick={()=>setEditingDate(key)} style={{
                                 background:"none",border:`1px solid ${t.border}`,color:t.textMuted,
-                                padding:"2px 7px",borderRadius:"5px",cursor:"pointer",fontSize:"10px",fontFamily:"inherit",
+                                padding:"2px 7px",borderRadius:"5px",cursor:"pointer",fontSize:"12px",fontFamily:"inherit",
                               }}>change date</button>
                             </div>
                           )}
@@ -986,7 +986,7 @@ function MobilityView({ mtProgress, setMtProgress, t }) {
                           {/* Date picker: shown when editing or marking done */}
                           {isEditingDate&&(
                             <div style={{marginTop:"6px",background:t.surface2,borderRadius:"9px",padding:"10px 12px",border:`1px solid ${MT_COLOR}44`}}>
-                              <div style={{fontSize:"10px",color:t.textSub,marginBottom:"8px",letterSpacing:"1px"}}>
+                              <div style={{fontSize:"12px",color:t.textSub,marginBottom:"8px",letterSpacing:"1px"}}>
                                 {isDone?"CHANGE DATE":"WHEN DID YOU DO THIS?"}
                               </div>
                               {/* Quick date buttons — last 7 days */}
@@ -1009,7 +1009,7 @@ function MobilityView({ mtProgress, setMtProgress, t }) {
 
                           {/* Notes */}
                           {prog?.notes&&!isNoting&&(
-                            <div style={{fontSize:"11px",color:t.textSub,fontStyle:"italic",marginTop:"6px",cursor:"pointer"}}
+                            <div style={{fontSize:"14px",color:t.textSub,fontStyle:"italic",marginTop:"6px",cursor:"pointer"}}
                               onClick={()=>{setActiveKey(key);setNoteText(prog.notes);}}>
                               "{prog.notes}"
                             </div>
@@ -1029,7 +1029,7 @@ function MobilityView({ mtProgress, setMtProgress, t }) {
                         {/* Note button */}
                         {!isNoting&&!isEditingDate&&(
                           <button onClick={()=>{setActiveKey(key);setNoteText(prog?.notes||"");}}
-                            style={{background:"none",border:"none",cursor:"pointer",color:prog?.notes?t.accent:t.textMuted,fontSize:"14px",padding:"2px 4px",marginTop:"2px",flexShrink:0}}>
+                            style={{background:"none",border:"none",cursor:"pointer",color:prog?.notes?t.accent:t.textMuted,fontSize:"12px",padding:"2px 4px",marginTop:"2px",flexShrink:0}}>
                             {prog?.notes?"📝":"✎"}
                           </button>
                         )}
@@ -1045,10 +1045,10 @@ function MobilityView({ mtProgress, setMtProgress, t }) {
 
       {/* Focus area legend */}
       <Card t={t} style={{padding:"14px 16px",marginTop:"6px"}}>
-        <div style={{fontSize:"10px",letterSpacing:"2px",color:t.textMuted,marginBottom:"10px"}}>FOCUS AREAS</div>
+        <div style={{fontSize:"12px",letterSpacing:"2px",color:t.textMuted,marginBottom:"10px"}}>FOCUS AREAS</div>
         <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
           {Object.entries(TAG_COLORS).map(([tag,color])=>(
-            <span key={tag} style={{fontSize:"11px",padding:"3px 9px",borderRadius:"10px",background:color+"18",color,border:`1px solid ${color}33`,fontWeight:"500",textTransform:"capitalize"}}>
+            <span key={tag} style={{fontSize:"14px",padding:"3px 9px",borderRadius:"10px",background:color+"18",color,border:`1px solid ${color}33`,fontWeight:"500",textTransform:"capitalize"}}>
               {tag}
             </span>
           ))}
@@ -1064,7 +1064,7 @@ function OuraPanel({ token,setToken,ouraData,fetchOura,fetching,ouraError,t }) {
   const cnt=Object.keys(ouraData).length;
   return (
     <div>
-      <p style={{fontSize:"13px",color:t.textSub,marginTop:0,lineHeight:"1.6"}}>
+      <p style={{fontSize:"14px",color:t.textSub,marginTop:0,lineHeight:"1.6"}}>
         Connect your Oura Ring 4 to pull readiness, sleep, and HRV into your calendar and stats.
       </p>
       <Card t={t} style={{padding:"16px",marginBottom:"14px"}}>
@@ -1075,7 +1075,7 @@ function OuraPanel({ token,setToken,ouraData,fetchOura,fetching,ouraError,t }) {
           <li>Create New Token, copy it</li>
           <li>Paste below and tap Sync</li>
         </ol>
-        <div style={{marginTop:"10px",fontSize:"11px",color:t.textSub,padding:"8px",background:t.surface2,borderRadius:"7px"}}>
+        <div style={{marginTop:"10px",fontSize:"14px",color:t.textSub,padding:"8px",background:t.surface2,borderRadius:"7px"}}>
           ⚠️ Requires an active Oura Membership for API access.
         </div>
       </Card>
@@ -1087,9 +1087,9 @@ function OuraPanel({ token,setToken,ouraData,fetchOura,fetching,ouraError,t }) {
           color:val&&!fetching?"#fff":t.textMuted,
           border:`1px solid ${val&&!fetching?t.accent:t.border}`,
           padding:"12px",borderRadius:"9px",cursor:val&&!fetching?"pointer":"default",
-          fontSize:"14px",fontFamily:"inherit",fontWeight:"600",transition:"all 0.12s",
+          fontSize:"12px",fontFamily:"inherit",fontWeight:"600",transition:"all 0.12s",
         }}>{fetching?"Syncing…":"💍 Sync Oura"}</button>
-        {token&&<button onClick={()=>{setToken("");setVal("");}} style={{background:"none",border:`1px solid ${t.border}`,color:t.textSub,padding:"12px 16px",borderRadius:"9px",cursor:"pointer",fontSize:"13px",fontFamily:"inherit"}}>Clear</button>}
+        {token&&<button onClick={()=>{setToken("");setVal("");}} style={{background:"none",border:`1px solid ${t.border}`,color:t.textSub,padding:"12px 16px",borderRadius:"9px",cursor:"pointer",fontSize:"14px",fontFamily:"inherit"}}>Clear</button>}
       </div>
       {ouraError&&<div style={{marginTop:"12px",padding:"10px 12px",background:"#fef2f2",border:"1px solid #fecaca",borderRadius:"8px",fontSize:"12px",color:"#ef4444"}}>{ouraError}</div>}
       {cnt>0&&!ouraError&&<div style={{marginTop:"10px",padding:"10px 12px",background:t.surface2,border:`1px solid ${t.border}`,borderRadius:"8px",fontSize:"12px",color:"#059669"}}>✓ {cnt} days synced. Purple dots on calendar = Oura data.</div>}
@@ -1135,10 +1135,10 @@ function DatePicker({ value, onChange, t }) {
     return { yr: d.getFullYear(), mo: d.getMonth() };
   });
 
-  // Build last 14 days (oldest left, today right)
+  // Build last 7 days (oldest left, today right)
   const days = useMemo(() => {
     const arr = [];
-    for (let i = 13; i >= 0; i--) {
+    for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
       d.setHours(12, 0, 0, 0);
@@ -1184,28 +1184,27 @@ function DatePicker({ value, onChange, t }) {
 
   return (
     <div>
-      {/* 14-day strip */}
+      {/* 7-day grid */}
       {!showGrid && (
-        <div ref={scrollRef} style={{
-          display:"flex", gap:"6px", overflowX:"auto",
-          scrollbarWidth:"none", WebkitOverflowScrolling:"touch",
-          padding:"2px 2px 6px",
+        <div style={{
+          display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:"6px",
+          padding:"2px 0 6px",
         }}>
           {days.map(d => {
             const sel = d.ds === value;
             return (
               <button key={d.ds} onClick={() => onChange(d.ds)} style={{
-                flexShrink: 0, width:"52px", minHeight:"62px",
+                minHeight:"56px",
                 borderRadius:"12px", cursor:"pointer", fontFamily:"inherit",
                 display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:"3px",
                 transition:"all 0.12s",
                 background: sel ? t.accent : d.isToday ? t.accent+"18" : t.surface2,
                 border: `1.5px solid ${sel ? t.accent : d.isToday ? t.accent+"55" : t.border}`,
               }}>
-                <span style={{fontSize:"10px",fontWeight:"500",letterSpacing:"0.5px",color:sel?"rgba(255,255,255,0.8)":t.textMuted}}>
+                <span style={{fontSize:"11px",fontWeight:"500",letterSpacing:"0.3px",color:sel?"rgba(255,255,255,0.8)":t.textMuted}}>
                   {d.isToday ? "TODAY" : d.day.toUpperCase()}
                 </span>
-                <span style={{fontSize:"20px",fontWeight:"700",lineHeight:1,color:sel?"#fff":t.text}}>
+                <span style={{fontSize:"16px",fontWeight:"700",lineHeight:1,color:sel?"#fff":t.text}}>
                   {d.num}
                 </span>
               </button>
@@ -1233,14 +1232,14 @@ function DatePicker({ value, onChange, t }) {
         <div style={{marginTop:"10px"}}>
           {/* Month nav */}
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"10px"}}>
-            <button onClick={prevMonth} style={{background:"none",border:`1px solid ${t.border}`,color:t.textSub,padding:"6px 14px",borderRadius:"8px",cursor:"pointer",fontSize:"16px",fontFamily:"inherit"}}>‹</button>
-            <span style={{fontSize:"14px",fontWeight:"700",color:t.text}}>{MONTHS[mo]} {yr}</span>
-            <button onClick={nextMonth} disabled={!canFwdGrid} style={{background:"none",border:`1px solid ${canFwdGrid?t.border:t.surface2}`,color:canFwdGrid?t.textSub:t.textMuted,padding:"6px 14px",borderRadius:"8px",cursor:canFwdGrid?"pointer":"default",fontSize:"16px"}}>›</button>
+            <button onClick={prevMonth} style={{background:"none",border:`1px solid ${t.border}`,color:t.textSub,padding:"6px 14px",borderRadius:"8px",cursor:"pointer",fontSize:"12px",fontFamily:"inherit"}}>‹</button>
+            <span style={{fontSize:"12px",fontWeight:"700",color:t.text}}>{MONTHS[mo]} {yr}</span>
+            <button onClick={nextMonth} disabled={!canFwdGrid} style={{background:"none",border:`1px solid ${canFwdGrid?t.border:t.surface2}`,color:canFwdGrid?t.textSub:t.textMuted,padding:"6px 14px",borderRadius:"8px",cursor:canFwdGrid?"pointer":"default",fontSize:"12px"}}>›</button>
           </div>
           {/* Day labels */}
           <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"3px",marginBottom:"4px"}}>
             {["S","M","T","W","T","F","S"].map((d,i)=>(
-              <div key={i} style={{textAlign:"center",fontSize:"10px",color:t.textMuted,padding:"2px 0"}}>{d}</div>
+              <div key={i} style={{textAlign:"center",fontSize:"12px",color:t.textMuted,padding:"2px 0"}}>{d}</div>
             ))}
           </div>
           {/* Day cells */}
@@ -1254,7 +1253,7 @@ function DatePicker({ value, onChange, t }) {
               return (
                 <button key={d} onClick={()=>pickGridDay(d)} disabled={isFuture} style={{
                   aspectRatio:"1", borderRadius:"9px", cursor:isFuture?"default":"pointer",
-                  fontFamily:"inherit", fontSize:"14px", fontWeight:isSel?"700":"400",
+                  fontFamily:"inherit", fontSize:"12px", fontWeight:isSel?"700":"400",
                   display:"flex",alignItems:"center",justifyContent:"center",
                   transition:"all 0.1s",
                   background: isSel ? t.accent : isToday ? t.accent+"22" : t.surface2,
@@ -1529,30 +1528,30 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
             color:period===p?t.text:t.textSub,
             border:period===p?`1px solid ${t.border}`:"none",
             padding:"9px",borderRadius:"7px",cursor:"pointer",
-            fontSize:"14px",fontFamily:"inherit",fontWeight:period===p?"600":"400",transition:"all 0.12s",
+            fontSize:"12px",fontFamily:"inherit",fontWeight:period===p?"600":"400",transition:"all 0.12s",
           }}>{lbl}</button>
         ))}
       </div>
 
       {/* Period navigation */}
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"16px"}}>
-        <button onClick={()=>{setPeriodOffset(o=>o+1);setDrillActivity(null);}} style={{background:"none",border:`1px solid ${t.border}`,color:t.textSub,padding:"6px 14px",borderRadius:"8px",cursor:"pointer",fontSize:"16px",fontFamily:"inherit"}}>‹</button>
-        <span style={{fontSize:"15px",fontWeight:"700",color:t.text}}>{win.label}</span>
-        <button onClick={()=>{setPeriodOffset(o=>Math.max(0,o-1));setDrillActivity(null);}} disabled={!canFwd} style={{background:"none",border:`1px solid ${canFwd?t.border:t.surface2}`,color:canFwd?t.textSub:t.textMuted,padding:"6px 14px",borderRadius:"8px",cursor:canFwd?"pointer":"default",fontSize:"16px"}}>›</button>
+        <button onClick={()=>{setPeriodOffset(o=>o+1);setDrillActivity(null);}} style={{background:"none",border:`1px solid ${t.border}`,color:t.textSub,padding:"6px 14px",borderRadius:"8px",cursor:"pointer",fontSize:"12px",fontFamily:"inherit"}}>‹</button>
+        <span style={{fontSize:"14px",fontWeight:"700",color:t.text}}>{win.label}</span>
+        <button onClick={()=>{setPeriodOffset(o=>Math.max(0,o-1));setDrillActivity(null);}} disabled={!canFwd} style={{background:"none",border:`1px solid ${canFwd?t.border:t.surface2}`,color:canFwd?t.textSub:t.textMuted,padding:"6px 14px",borderRadius:"8px",cursor:canFwd?"pointer":"default",fontSize:"12px"}}>›</button>
       </div>
 
       {/* ── DRILL VIEW ── */}
       {drillActivity && drillInfo ? (
         <div>
-          <button onClick={()=>setDrillActivity(null)} style={{background:"none",border:"none",color:t.textSub,cursor:"pointer",fontSize:"13px",fontFamily:"inherit",padding:"0",marginBottom:"16px",display:"flex",alignItems:"center",gap:"4px"}}>
+          <button onClick={()=>setDrillActivity(null)} style={{background:"none",border:"none",color:t.textSub,cursor:"pointer",fontSize:"14px",fontFamily:"inherit",padding:"0",marginBottom:"16px",display:"flex",alignItems:"center",gap:"4px"}}>
             ← Back
           </button>
           <Card t={t} style={{padding:"16px 18px",marginBottom:"14px",borderLeft:`4px solid ${drillInfo.color}`}}>
             <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"14px"}}>
-              <span style={{fontSize:"24px"}}>{drillInfo.icon}</span>
+              <span style={{fontSize:"12px"}}>{drillInfo.icon}</span>
               <div>
-                <div style={{fontSize:"16px",fontWeight:"700",color:t.text}}>{drillInfo.label}</div>
-                <div style={{fontSize:"11px",color:t.textSub}}>{win.label}</div>
+                <div style={{fontSize:"12px",fontWeight:"700",color:t.text}}>{drillInfo.label}</div>
+                <div style={{fontSize:"14px",color:t.textSub}}>{win.label}</div>
               </div>
             </div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"10px"}}>
@@ -1562,8 +1561,8 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
                 {label:"Avg",     value:drillInfo.value?Math.round(drillInfo.minutes/drillInfo.value)+"m/s":"—"},
               ].map(s=>(
                 <div key={s.label} style={{textAlign:"center"}}>
-                  <div style={{fontSize:"22px",fontWeight:"700",color:drillInfo.color}}>{s.value}</div>
-                  <div style={{fontSize:"9px",color:t.textMuted,letterSpacing:"1px",marginTop:"2px"}}>{s.label.toUpperCase()}</div>
+                  <div style={{fontSize:"12px",fontWeight:"700",color:drillInfo.color}}>{s.value}</div>
+                  <div style={{fontSize:"14px",color:t.textMuted,letterSpacing:"1px",marginTop:"2px"}}>{s.label.toUpperCase()}</div>
                 </div>
               ))}
             </div>
@@ -1575,12 +1574,12 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
               return (
                 <Card t={t} key={log.id} style={{padding:"11px 14px",borderLeft:`3px solid ${drillInfo.color}`}}>
                   <div style={{fontSize:"12px",fontWeight:"600",color:t.text}}>{formatDate(log.date)}</div>
-                  {info.parentLabel && <div style={{fontSize:"11px",color:drillInfo.color,marginTop:"1px"}}>{info.label}</div>}
-                  <div style={{fontSize:"11px",color:t.textSub,marginTop:"2px"}}>{log.duration?log.duration+" min":""}{log.notes?" · "+log.notes:""}</div>
+                  {info.parentLabel && <div style={{fontSize:"14px",color:drillInfo.color,marginTop:"1px"}}>{info.label}</div>}
+                  <div style={{fontSize:"14px",color:t.textSub,marginTop:"2px"}}>{log.duration?log.duration+" min":""}{log.notes?" · "+log.notes:""}</div>
                 </Card>
               );
             })}
-            {!drillLogs.length && <div style={{textAlign:"center",color:t.textMuted,padding:"20px 0",fontSize:"13px"}}>No sessions this period.</div>}
+            {!drillLogs.length && <div style={{textAlign:"center",color:t.textMuted,padding:"20px 0",fontSize:"14px"}}>No sessions this period.</div>}
           </div>
         </div>
 
@@ -1592,12 +1591,12 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
           <Card t={t} style={{padding:"20px 18px",marginBottom:"14px"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"16px"}}>
               <div>
-                <div style={{fontSize:"13px",color:t.textSub,marginBottom:"4px",letterSpacing:"1px"}}>ACTIVE DAYS</div>
+                <div style={{fontSize:"14px",color:t.textSub,marginBottom:"4px",letterSpacing:"1px"}}>ACTIVE DAYS</div>
                 <div style={{display:"flex",alignItems:"baseline",gap:"6px"}}>
                   <span style={{fontSize:"42px",fontWeight:"800",color:scoreColor(pctActive),lineHeight:1}}>{activeDays}</span>
-                  <span style={{fontSize:"18px",color:t.textMuted,fontWeight:"400"}}>/ {elapsed}</span>
+                  <span style={{fontSize:"12px",color:t.textMuted,fontWeight:"400"}}>/ {elapsed}</span>
                 </div>
-                <div style={{fontSize:"11px",color:t.textSub,marginTop:"4px"}}>
+                <div style={{fontSize:"14px",color:t.textSub,marginTop:"4px"}}>
                   {streak > 0 && <span style={{color:"#f59e0b",fontWeight:"600"}}>🔥 {streak} day streak · </span>}
                   {missedDays > 0 ? `${missedDays} missed` : "No missed days!"}
                   {restDays > 0 && ` · ${restDays} rest`}
@@ -1616,7 +1615,7 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
                   />
                 </svg>
                 <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
-                  <span style={{fontSize:"16px",fontWeight:"800",color:scoreColor(pctActive)}}>{pctActive}%</span>
+                  <span style={{fontSize:"12px",fontWeight:"800",color:scoreColor(pctActive)}}>{pctActive}%</span>
                 </div>
               </div>
             </div>
@@ -1629,8 +1628,8 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
                 {label:"Missed",  value:missedDays, color:"#ef4444"},
               ].map(item=>(
                 <div key={item.label} style={{flex:1,textAlign:"center",padding:"8px 4px",background:item.color+"14",borderRadius:"8px",border:`1px solid ${item.color}33`}}>
-                  <div style={{fontSize:"17px",fontWeight:"700",color:item.value>0?item.color:t.textMuted}}>{item.value}</div>
-                  <div style={{fontSize:"9px",color:t.textMuted,letterSpacing:"1px",marginTop:"2px"}}>{item.label.toUpperCase()}</div>
+                  <div style={{fontSize:"14px",fontWeight:"700",color:item.value>0?item.color:t.textMuted}}>{item.value}</div>
+                  <div style={{fontSize:"14px",color:t.textMuted,letterSpacing:"1px",marginTop:"2px"}}>{item.label.toUpperCase()}</div>
                 </div>
               ))}
             </div>
@@ -1643,7 +1642,7 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
               <Card t={t} style={{padding:"12px 14px",marginBottom:"14px"}}>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"3px",marginBottom:"4px"}}>
                   {["S","M","T","W","T","F","S"].map((d,i)=>(
-                    <div key={i} style={{textAlign:"center",fontSize:"9px",color:t.textMuted,padding:"2px 0"}}>{d}</div>
+                    <div key={i} style={{textAlign:"center",fontSize:"14px",color:t.textMuted,padding:"2px 0"}}>{d}</div>
                   ))}
                 </div>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"3px"}}>
@@ -1659,7 +1658,7 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
                       display:"flex",alignItems:"center",justifyContent:"center",
                       opacity:isF?0.3:1,
                     }}>
-                      <span style={{fontSize:"9px",fontWeight:color?"700":"400",color:color?"#fff":t.textMuted,textShadow:color?"0 1px 2px rgba(0,0,0,0.3)":"none"}}>{d}</span>
+                      <span style={{fontSize:"14px",fontWeight:color?"700":"400",color:color?"#fff":t.textMuted,textShadow:color?"0 1px 2px rgba(0,0,0,0.3)":"none"}}>{d}</span>
                     </div>
                   ))}
                 </div>
@@ -1675,7 +1674,7 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
                 {yearMonths.map((m,i)=>{
                   if (m.future) return (
                     <div key={i} style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"8px",opacity:0.3}}>
-                      <span style={{fontSize:"11px",color:t.textMuted,width:"28px"}}>{m.label}</span>
+                      <span style={{fontSize:"14px",color:t.textMuted,width:"28px"}}>{m.label}</span>
                       <div style={{flex:1,background:t.surface2,borderRadius:"4px",height:"8px"}}/>
                     </div>
                   );
@@ -1683,11 +1682,11 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
                   const color = scoreColor(Math.round(pct*100));
                   return (
                     <div key={i} style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"8px"}}>
-                      <span style={{fontSize:"11px",color:t.textSub,width:"28px",flexShrink:0}}>{m.label}</span>
+                      <span style={{fontSize:"14px",color:t.textSub,width:"28px",flexShrink:0}}>{m.label}</span>
                       <div style={{flex:1,background:t.surface2,borderRadius:"4px",height:"8px",overflow:"hidden"}}>
                         <div style={{height:"100%",width:(pct*100)+"%",background:color,borderRadius:"4px",transition:"width 0.5s"}}/>
                       </div>
-                      <span style={{fontSize:"11px",color:t.textSub,width:"36px",textAlign:"right",flexShrink:0}}>
+                      <span style={{fontSize:"14px",color:t.textSub,width:"36px",textAlign:"right",flexShrink:0}}>
                         {m.activeDays}/{m.elapsed}
                       </span>
                     </div>
@@ -1700,7 +1699,7 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
           {/* ── Activity mix ── */}
           {filteredAct.length > 0 && (
             <>
-              <Label t={t}>WHAT YOU DID <span style={{color:t.textMuted,fontWeight:"400",letterSpacing:"0",fontSize:"10px"}}>— tap to drill in</span></Label>
+              <Label t={t}>WHAT YOU DID <span style={{color:t.textMuted,fontWeight:"400",letterSpacing:"0",fontSize:"12px"}}>— tap to drill in</span></Label>
               <Card t={t} style={{padding:"14px 16px",marginBottom:"14px"}}>
                 {filteredCounts.map(a=>{
                   const pct = a.value/filteredAct.length*100;
@@ -1710,7 +1709,7 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
                       onMouseEnter={e=>e.currentTarget.style.background=t.surface2}
                       onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"5px"}}>
-                        <span style={{display:"flex",alignItems:"center",gap:"7px",fontSize:"13px",color:t.text}}>
+                        <span style={{display:"flex",alignItems:"center",gap:"7px",fontSize:"14px",color:t.text}}>
                           <span style={{display:"inline-block",width:"9px",height:"9px",borderRadius:"3px",background:a.color,flexShrink:0}}/>
                           {a.icon} {a.label}
                         </span>
@@ -1730,7 +1729,7 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
           )}
 
           {filteredAct.length === 0 && (
-            <div style={{textAlign:"center",color:t.textMuted,padding:"40px 0",fontSize:"13px"}}>No activity logged this period.</div>
+            <div style={{textAlign:"center",color:t.textMuted,padding:"40px 0",fontSize:"14px"}}>No activity logged this period.</div>
           )}
         </div>
       )}
@@ -1738,9 +1737,180 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
   );
 }
 
+// ─── Supplements View ─────────────────────────────────────────────────────────
+function SupplementsView({ suppLogs, setSuppLogs, t }) {
+  const today = todayStr();
+
+  // Toggle a supplement for a given date
+  function toggle(date, key) {
+    const prev = suppLogs[date] || { supplements: false, creatine: false };
+    setSuppLogs({ ...suppLogs, [date]: { ...prev, [key]: !prev[key] } });
+  }
+
+  // Build last 7 days for quick view
+  const recentDays = useMemo(() => {
+    const arr = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      d.setHours(12, 0, 0, 0);
+      arr.push({
+        ds: toDateStr(d),
+        day: DAY_SHORT[d.getDay()],
+        num: d.getDate(),
+        isToday: i === 0,
+      });
+    }
+    return arr;
+  }, []);
+
+  // Streak calculation
+  const suppStreak = (() => {
+    let s = 0; const c = new Date();
+    while (true) {
+      const ds = toDateStr(c);
+      const entry = suppLogs[ds];
+      if (entry?.supplements && entry?.creatine) { s++; c.setDate(c.getDate() - 1); }
+      else break;
+    }
+    return s;
+  })();
+
+  // Stats for last 30 days
+  const last30 = (() => {
+    let suppCount = 0, creatineCount = 0;
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(); d.setDate(d.getDate() - i); d.setHours(12,0,0,0);
+      const entry = suppLogs[toDateStr(d)];
+      if (entry?.supplements) suppCount++;
+      if (entry?.creatine) creatineCount++;
+    }
+    return { suppCount, creatineCount };
+  })();
+
+  const todayEntry = suppLogs[today] || { supplements: false, creatine: false };
+
+  const SUPP_COLOR = "#8b5cf6";
+  const CREATINE_COLOR = "#06b6d4";
+
+  return (
+    <div>
+      {/* Today's check-in */}
+      <Card t={t} style={{padding:"18px",marginBottom:"14px"}}>
+        <Label t={t}>TODAY</Label>
+        <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
+          {[
+            { key: "supplements", label: "Supplements", icon: "💊", color: SUPP_COLOR, checked: todayEntry.supplements },
+            { key: "creatine",    label: "Creatine",    icon: "⚡", color: CREATINE_COLOR, checked: todayEntry.creatine },
+          ].map(item => (
+            <button key={item.key} onClick={() => toggle(today, item.key)} style={{
+              display:"flex", alignItems:"center", gap:"14px",
+              padding:"16px", borderRadius:"12px", cursor:"pointer",
+              fontFamily:"inherit", border:"none", transition:"all 0.15s",
+              background: item.checked ? item.color+"18" : t.surface2,
+              border: `1.5px solid ${item.checked ? item.color : t.border}`,
+            }}>
+              <div style={{
+                width:"28px", height:"28px", borderRadius:"8px", flexShrink:0,
+                background: item.checked ? item.color : t.surface2,
+                border: `2px solid ${item.checked ? item.color : t.border}`,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                fontSize:"14px", color:"#fff", transition:"all 0.15s",
+              }}>
+                {item.checked ? "✓" : ""}
+              </div>
+              <span style={{fontSize:"18px"}}>{item.icon}</span>
+              <span style={{fontSize:"15px",fontWeight:"600",color: item.checked ? item.color : t.text}}>
+                {item.label}
+              </span>
+              {item.checked && (
+                <span style={{marginLeft:"auto",fontSize:"13px",color:item.color,fontWeight:"500"}}>Done</span>
+              )}
+            </button>
+          ))}
+        </div>
+      </Card>
+
+      {/* Quick stats */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"8px",marginBottom:"14px"}}>
+        {[
+          { label:"Streak", value: suppStreak+"d", color: suppStreak > 0 ? "#f59e0b" : t.textMuted },
+          { label:"Supps/30d", value: last30.suppCount, color: SUPP_COLOR },
+          { label:"Creatine/30d", value: last30.creatineCount, color: CREATINE_COLOR },
+        ].map(s=>(
+          <Card t={t} key={s.label} style={{padding:"12px 8px",textAlign:"center"}}>
+            <div style={{fontSize:"15px",fontWeight:"700",color:s.color}}>{s.value}</div>
+            <div style={{fontSize:"11px",color:t.textMuted,letterSpacing:"0.5px",marginTop:"3px"}}>{s.label.toUpperCase()}</div>
+          </Card>
+        ))}
+      </div>
+
+      {/* Last 7 days */}
+      <Label t={t}>THIS WEEK</Label>
+      <Card t={t} style={{padding:"14px 16px",marginBottom:"14px"}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"6px"}}>
+          {recentDays.map(d => {
+            const entry = suppLogs[d.ds] || { supplements: false, creatine: false };
+            const both = entry.supplements && entry.creatine;
+            const either = entry.supplements || entry.creatine;
+            return (
+              <div key={d.ds} style={{textAlign:"center"}}>
+                <div style={{fontSize:"11px",color:d.isToday?t.accent:t.textMuted,fontWeight:d.isToday?"700":"400",marginBottom:"6px"}}>
+                  {d.isToday ? "TOD" : d.day}
+                </div>
+                <div style={{
+                  width:"100%",aspectRatio:"1",borderRadius:"8px",
+                  display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:"2px",
+                  background: both ? SUPP_COLOR+"22" : t.surface2,
+                  border: `1.5px solid ${both ? SUPP_COLOR : either ? CREATINE_COLOR+"66" : t.border}`,
+                }}>
+                  <div style={{fontSize:"10px"}}>
+                    {entry.supplements ? "💊" : <span style={{opacity:0.2}}>💊</span>}
+                  </div>
+                  <div style={{fontSize:"10px"}}>
+                    {entry.creatine ? "⚡" : <span style={{opacity:0.2}}>⚡</span>}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+
+      {/* Backfill - tap past days */}
+      <Label t={t}>BACKFILL A DAY</Label>
+      <Card t={t} style={{padding:"14px 16px"}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"6px"}}>
+          {recentDays.filter(d=>!d.isToday).map(d => {
+            const entry = suppLogs[d.ds] || { supplements: false, creatine: false };
+            return (
+              <div key={d.ds} style={{textAlign:"center"}}>
+                <div style={{fontSize:"11px",color:t.textMuted,marginBottom:"4px"}}>{d.day} {d.num}</div>
+                <button onClick={() => toggle(d.ds, "supplements")} style={{
+                  width:"100%",padding:"6px 0",borderRadius:"6px 6px 0 0",cursor:"pointer",
+                  border:`1px solid ${entry.supplements ? SUPP_COLOR+"66" : t.border}`,
+                  borderBottom:"none",
+                  background: entry.supplements ? SUPP_COLOR+"22" : "transparent",
+                  fontSize:"12px",fontFamily:"inherit",color:entry.supplements ? SUPP_COLOR : t.textMuted,
+                }}>💊</button>
+                <button onClick={() => toggle(d.ds, "creatine")} style={{
+                  width:"100%",padding:"6px 0",borderRadius:"0 0 6px 6px",cursor:"pointer",
+                  border:`1px solid ${entry.creatine ? CREATINE_COLOR+"66" : t.border}`,
+                  background: entry.creatine ? CREATINE_COLOR+"22" : "transparent",
+                  fontSize:"12px",fontFamily:"inherit",color:entry.creatine ? CREATINE_COLOR : t.textMuted,
+                }}>⚡</button>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
 // ─── Main App ─────────────────────────────────────────────────────────────────
 export default function ActivityTracker() {
-  const [dark,     setDark]     = useState(true);
+  const [dark,     setDark]     = useState(false);
   const [logs,     setLogs]     = useState([]);
   const [tree,     setTree]     = useState(DEFAULT_ACTIVITY_TREE);
   const [view,     setView]     = useState("log");
@@ -1757,8 +1927,29 @@ export default function ActivityTracker() {
   const [fetching,   setFetching]   = useState(false);
   const [ouraError,  setOuraError]  = useState("");
   const [mtProgress, setMtProgressRaw] = useState({});
+  const [showAllActivities, setShowAllActivities] = useState(false);
+  const [suppLogs, setSuppLogsRaw] = useState({}); // { "2026-02-24": { supplements: true, creatine: false }, ... }
 
   const t = tokens(dark);
+
+  // ── Sorted activities: most-used first, show top 4 by default ───────────
+  const MAX_QUICK = 4;
+  const sortedTree = useMemo(() => {
+    const counts = {};
+    logs.forEach(l => {
+      if (isRestId(l.activity)) return;
+      // Roll up sub-activities and MT sessions to parent
+      const isMT = /^w\dd\d$/.test(l.activity);
+      if (isMT) { counts["mobility-toolkit"] = (counts["mobility-toolkit"]||0) + 1; return; }
+      for (const a of tree) {
+        if (a.id === l.activity) { counts[a.id] = (counts[a.id]||0) + 1; return; }
+        for (const s of (a.sub||[])) {
+          if (s.id === l.activity) { counts[a.id] = (counts[a.id]||0) + 1; return; }
+        }
+      }
+    });
+    return [...tree].sort((a,b) => (counts[b.id]||0) - (counts[a.id]||0));
+  }, [tree, logs]);
 
   // ── Persist tree to storage when it changes ──────────────────────────────
   useEffect(()=>{
@@ -1777,6 +1968,7 @@ export default function ActivityTracker() {
         const od=await safeGet("oura_data");       if(od) setOuraData(JSON.parse(od.value));
         const dm=await safeGet("dark_mode");       if(dm) setDark(dm.value==="true");
         const mp=await safeGet("mt_progress");     if(mp) setMtProgressRaw(JSON.parse(mp.value));
+        const sl=await safeGet("supp_logs");       if(sl) setSuppLogsRaw(JSON.parse(sl.value));
       } catch(e){}
       setLoading(false);
     })();
@@ -1788,6 +1980,10 @@ export default function ActivityTracker() {
   const setMtProgress = updated => {
     setMtProgressRaw(updated);
     window.storage.set("mt_progress", JSON.stringify(updated)).catch(()=>{});
+  };
+  const setSuppLogs = updated => {
+    setSuppLogsRaw(updated);
+    window.storage.set("supp_logs", JSON.stringify(updated)).catch(()=>{});
   };
 
   // ── Oura fetch ────────────────────────────────────────────────────────────
@@ -1886,34 +2082,32 @@ export default function ActivityTracker() {
   const ouraToday = ouraData[todayStr()];
 
   const TABS = [
-    { id:"log",      label:"Log",      icon:"+" },
+    { id:"supps",    label:"Supps",    icon:"💊" },
     { id:"mobility", label:"Mobility", icon:"🔁" },
     { id:"calendar", label:"Calendar", icon:"▦"  },
+    { id:"log",      label:"Log",      icon:"+" },
     { id:"history",  label:"History",  icon:"≡"  },
     { id:"stats",    label:"Stats",    icon:"↗"  },
-    { id:"manage",   label:"Manage",   icon:"✎"  },
-    { id:"oura",     label:"Oura",     icon:"◎"  },
+    { id:"theme",    label:dark?"Light":"Dark", icon:dark?"☀️":"🌙" },
   ];
 
   return (
     <div style={{ minHeight:"100vh", maxWidth:"390px", margin:"0 auto",
       background:t.bg, color:t.text,
       fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',sans-serif",
-      display:"flex", flexDirection:"column",
+      display:"flex", flexDirection:"column", position:"relative",
     }}>
-      {/* Header */}
-      <div style={{padding:"16px 20px 12px",borderBottom:`1px solid ${t.border}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-        <div>
-          <div style={{fontSize:"10px",letterSpacing:"3px",color:t.textMuted,marginBottom:"1px"}}>PERSONAL</div>
-          <div style={{fontSize:"20px",fontWeight:"700",color:t.text,letterSpacing:"-0.3px"}}>Activity Log</div>
-        </div>
-        <button onClick={toggleDark} style={{background:t.surface2,border:`1px solid ${t.border}`,borderRadius:"8px",padding:"7px 10px",cursor:"pointer",fontSize:"15px",color:t.textSub}}>
-          {dark?"☀️":"🌙"}
-        </button>
-      </div>
-
+      {/* Dynamic theme color for status bar */}
+      {useEffect(()=>{
+        const meta = document.querySelector('meta[name="theme-color"]') || (() => {
+          const m = document.createElement('meta'); m.name='theme-color'; document.head.appendChild(m); return m;
+        })();
+        meta.content = dark ? '#0f0f14' : '#ffffff';
+        const statusMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+        if (statusMeta) statusMeta.content = dark ? 'black-translucent' : 'default';
+      }, [dark])}
       {/* Content */}
-      <div style={{flex:1,overflowY:"auto",padding:"18px 20px 96px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"12px 20px 96px"}}>
 
         {/* ── LOG ── */}
         {view==="log"&&(
@@ -1926,7 +2120,7 @@ export default function ActivityTracker() {
                   color:logMode===m?t.text:t.textSub,
                   border:logMode===m?`1px solid ${t.border}`:"none",
                   padding:"9px 6px",borderRadius:"7px",cursor:"pointer",
-                  fontSize:"13px",fontFamily:"inherit",fontWeight:logMode===m?"600":"400",
+                  fontSize:"14px",fontFamily:"inherit",fontWeight:logMode===m?"600":"400",
                   transition:"all 0.12s",
                 }}>{lbl}</button>
               ))}
@@ -1944,25 +2138,47 @@ export default function ActivityTracker() {
                 {/* STEP 2: Pick activity */}
                 <Card t={t} style={{padding:"14px 16px",marginBottom:"12px"}}>
                   <Label t={t}>ACTIVITY</Label>
-                  <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}>
-                    {tree.map(a=>(
-                      <Pill key={a.id} active={selTop===a.id} color={a.color} t={t}
-                        onClick={()=>{
-                          setSelTop(a.id);
-                          // For MT, auto-select the next incomplete session
-                          if (a.id==="mobility-toolkit" && nextMTSess) {
-                            setSelSub(nextMTSess.key);
-                          } else {
-                            setSelSub(null);
-                          }
-                        }}>
-                        {a.icon} {a.label}
-                        {a.id==="mobility-toolkit" && nextMTSess && (
-                          <span style={{fontSize:"10px",opacity:0.7,marginLeft:"2px"}}>Wk{nextMTSess.week}·D{nextMTSess.day}</span>
+                  {(() => {
+                    const visibleActivities = showAllActivities ? sortedTree : sortedTree.slice(0, MAX_QUICK);
+                    const hiddenCount = sortedTree.length - MAX_QUICK;
+                    // If the selected activity is hidden, always show it
+                    const selectedInHidden = selTop && !showAllActivities && !visibleActivities.some(a=>a.id===selTop);
+                    const displayList = selectedInHidden
+                      ? [...visibleActivities, sortedTree.find(a=>a.id===selTop)].filter(Boolean)
+                      : visibleActivities;
+
+                    return (
+                      <>
+                        <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}>
+                          {displayList.map(a=>(
+                            <Pill key={a.id} active={selTop===a.id} color={a.color} t={t}
+                              onClick={()=>{
+                                setSelTop(a.id);
+                                if (a.id==="mobility-toolkit" && nextMTSess) {
+                                  setSelSub(nextMTSess.key);
+                                } else {
+                                  setSelSub(null);
+                                }
+                              }}>
+                              {a.icon} {a.label}
+                              {a.id==="mobility-toolkit" && nextMTSess && (
+                                <span style={{fontSize:"12px",opacity:0.7,marginLeft:"2px"}}>Wk{nextMTSess.week}·D{nextMTSess.day}</span>
+                              )}
+                            </Pill>
+                          ))}
+                        </div>
+                        {hiddenCount > 0 && (
+                          <button onClick={()=>setShowAllActivities(s=>!s)} style={{
+                            background:"none",border:"none",cursor:"pointer",
+                            color:t.accent,fontSize:"13px",fontFamily:"inherit",fontWeight:"600",
+                            padding:"8px 0 0",display:"flex",alignItems:"center",gap:"4px",
+                          }}>
+                            {showAllActivities ? "▲ Show less" : `▼ Show all (${hiddenCount} more)`}
+                          </button>
                         )}
-                      </Pill>
-                    ))}
-                  </div>
+                      </>
+                    );
+                  })()}
 
                   {/* Sub-categories — MT gets special treatment */}
                   {selTop && hasSubs && !isMTSelected && (
@@ -1988,16 +2204,16 @@ export default function ActivityTracker() {
                       <Label t={t}>NEXT SESSION</Label>
                       <div style={{background:MT_COLOR+"12",border:`1px solid ${MT_COLOR}33`,borderRadius:"10px",padding:"12px 14px"}}>
                         <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"8px"}}>
-                          <span style={{fontSize:"22px"}}>{nextMTSess.icon}</span>
+                          <span style={{fontSize:"12px"}}>{nextMTSess.icon}</span>
                           <div>
-                            <div style={{fontSize:"14px",fontWeight:"700",color:MT_COLOR}}>{nextMTSess.shortLabel}</div>
-                            <div style={{fontSize:"11px",color:t.textSub,marginTop:"1px"}}>{nextMTSess.focus}</div>
+                            <div style={{fontSize:"12px",fontWeight:"700",color:MT_COLOR}}>{nextMTSess.shortLabel}</div>
+                            <div style={{fontSize:"14px",color:t.textSub,marginTop:"1px"}}>{nextMTSess.focus}</div>
                           </div>
                         </div>
                         {/* Allow picking a different session */}
                         <div style={{borderTop:`1px solid ${MT_COLOR}22`,paddingTop:"8px",marginTop:"4px"}}>
-                          <div style={{fontSize:"10px",color:t.textMuted,marginBottom:"6px",letterSpacing:"1px"}}>OR PICK A DIFFERENT SESSION</div>
-                          <div style={{display:"flex",flexWrap:"wrap",gap:"5px",maxHeight:"80px",overflowY:"auto"}}>
+                          <div style={{fontSize:"12px",color:t.textMuted,marginBottom:"6px",letterSpacing:"1px"}}>OR PICK A DIFFERENT SESSION</div>
+                          <div style={{display:"flex",flexWrap:"wrap",gap:"5px"}}>
                             {MT_PROGRAM.map(wk=>wk.days.map(d=>{
                               const k=`w${wk.week}d${d.day}`;
                               const done=mtProgress[k]?.done;
@@ -2005,7 +2221,7 @@ export default function ActivityTracker() {
                               return (
                                 <button key={k} onClick={()=>setSelSub(k)} style={{
                                   padding:"4px 9px",borderRadius:"8px",cursor:"pointer",fontFamily:"inherit",
-                                  fontSize:"11px",fontWeight:isSel?"700":"400",transition:"all 0.1s",
+                                  fontSize:"14px",fontWeight:isSel?"700":"400",transition:"all 0.1s",
                                   background:isSel?MT_COLOR:done?t.surface2:"transparent",
                                   color:isSel?"#fff":done?t.textMuted:t.textSub,
                                   border:`1px solid ${isSel?MT_COLOR:t.border}`,
@@ -2019,7 +2235,7 @@ export default function ActivityTracker() {
                     </div>
                   )}
                   {isMTSelected && !nextMTSess && (
-                    <div style={{marginTop:"14px",padding:"12px 14px",background:MT_COLOR+"12",borderRadius:"10px",border:`1px solid ${MT_COLOR}33`,fontSize:"13px",color:MT_COLOR,fontWeight:"600"}}>
+                    <div style={{marginTop:"14px",padding:"12px 14px",background:MT_COLOR+"12",borderRadius:"10px",border:`1px solid ${MT_COLOR}33`,fontSize:"14px",color:MT_COLOR,fontWeight:"600"}}>
                       🎉 All sessions complete!
                     </div>
                   )}
@@ -2032,7 +2248,7 @@ export default function ActivityTracker() {
                     {[15,30,45,60,90,120].map(min=>(
                       <button key={min} onClick={()=>setForm(f=>({...f,duration:String(min)}))} style={{
                         padding:"7px 13px",borderRadius:"8px",cursor:"pointer",fontFamily:"inherit",
-                        fontSize:"13px",fontWeight:"500",transition:"all 0.12s",
+                        fontSize:"14px",fontWeight:"500",transition:"all 0.12s",
                         background: form.duration===String(min) ? (topNode?.color||t.accent) : t.surface2,
                         color:      form.duration===String(min) ? "#fff" : t.textSub,
                         border:     `1px solid ${form.duration===String(min) ? (topNode?.color||t.accent) : t.border}`,
@@ -2045,7 +2261,7 @@ export default function ActivityTracker() {
                       style={{
                         width:"80px", background:t.surface2, border:`1px solid ${t.border}`,
                         color:t.text, padding:"7px 10px", borderRadius:"8px",
-                        fontSize:"13px", fontFamily:"inherit", outline:"none",
+                        fontSize:"14px", fontFamily:"inherit", outline:"none",
                       }}
                     />
                   </div>
@@ -2071,10 +2287,10 @@ export default function ActivityTracker() {
                         color:restForm.activity===r.id?r.color:t.textSub,
                         border:`1px solid ${restForm.activity===r.id?r.color+"66":t.border}`,
                         padding:"14px 6px",borderRadius:"10px",cursor:"pointer",
-                        fontSize:"11px",display:"flex",flexDirection:"column",alignItems:"center",gap:"6px",
+                        fontSize:"14px",display:"flex",flexDirection:"column",alignItems:"center",gap:"6px",
                         fontFamily:"inherit",fontWeight:"500",transition:"all 0.12s",
                       }}>
-                        <span style={{fontSize:"22px"}}>{r.icon}</span>{r.label}
+                        <span style={{fontSize:"18px"}}>{r.icon}</span>{r.label}
                       </button>
                     ))}
                   </div>
@@ -2111,7 +2327,7 @@ export default function ActivityTracker() {
                   color: ready ? "#fff" : t.textMuted,
                   border: `1px solid ${ready ? color : t.border}`,
                   borderRadius:"12px", cursor: ready ? "pointer" : "default",
-                  fontSize:"15px", fontFamily:"inherit", fontWeight:"700",
+                  fontSize:"14px", fontFamily:"inherit", fontWeight:"700",
                   transition:"all 0.15s", marginBottom:"14px",
                   opacity: ready ? 1 : 0.7,
                 }}>
@@ -2147,7 +2363,7 @@ export default function ActivityTracker() {
                 }}>
                   <div style={{fontSize:"32px",textAlign:"center",marginBottom:"14px",display:"block",animation:"popIn 0.4s 0.15s cubic-bezier(0.34,1.6,0.64,1) both"}}>🎉</div>
                   <div style={{
-                    fontSize:"17px",color:t.text,lineHeight:"1.65",
+                    fontSize:"14px",color:t.text,lineHeight:"1.65",
                     fontStyle:"italic",fontWeight:"500",textAlign:"center",marginBottom:"12px",
                   }}>"{quote.text}"</div>
                   {quote.author !== "Unknown" && (
@@ -2177,11 +2393,21 @@ export default function ActivityTracker() {
                 {label:"Streak",value:streak+"d"},
               ].map(s=>(
                 <Card t={t} key={s.label} style={{padding:"12px 8px",textAlign:"center"}}>
-                  <div style={{fontSize:"18px",fontWeight:"700",color:t.text}}>{s.value}</div>
-                  <div style={{fontSize:"10px",color:t.textMuted,letterSpacing:"1px",marginTop:"2px"}}>{s.label.toUpperCase()}</div>
+                  <div style={{fontSize:"12px",fontWeight:"700",color:t.text}}>{s.value}</div>
+                  <div style={{fontSize:"12px",color:t.textMuted,letterSpacing:"1px",marginTop:"2px"}}>{s.label.toUpperCase()}</div>
                 </Card>
               ))}
             </div>
+
+            {/* Manage link */}
+            <button onClick={()=>setView("manage")} style={{
+              background:"none",border:`1px solid ${t.border}`,borderRadius:"10px",
+              cursor:"pointer",color:t.textSub,fontSize:"13px",fontFamily:"inherit",
+              fontWeight:"500",padding:"12px",marginTop:"14px",width:"100%",
+              display:"flex",alignItems:"center",justifyContent:"center",gap:"6px",
+            }}>
+              ✎ Manage Activities & Oura
+            </button>
           </div>
         )}
 
@@ -2198,13 +2424,13 @@ export default function ActivityTracker() {
                 const info=resolveActivity(log.activity,tree);
                 return (
                   <Card t={t} key={log.id} style={{padding:"13px 15px",display:"flex",alignItems:"center",gap:"11px",borderLeft:`3px solid ${info.color}`}}>
-                    <span style={{fontSize:"20px"}}>{info.icon}</span>
+                    <span style={{fontSize:"18px"}}>{info.icon}</span>
                     <div style={{flex:1}}>
-                      <div style={{fontSize:"13px",fontWeight:"600",color:t.text}}>{displayLabel(info)}</div>
-                      <div style={{fontSize:"11px",color:t.textSub,marginTop:"1px"}}>{formatDate(log.date)}{log.duration?" · "+log.duration+" min":""}</div>
-                      {log.notes&&<div style={{fontSize:"11px",color:t.textSub,fontStyle:"italic",marginTop:"2px"}}>{log.notes}</div>}
+                      <div style={{fontSize:"14px",fontWeight:"600",color:t.text}}>{displayLabel(info)}</div>
+                      <div style={{fontSize:"14px",color:t.textSub,marginTop:"1px"}}>{formatDate(log.date)}{log.duration?" · "+log.duration+" min":""}</div>
+                      {log.notes&&<div style={{fontSize:"14px",color:t.textSub,fontStyle:"italic",marginTop:"2px"}}>{log.notes}</div>}
                     </div>
-                    <button onClick={()=>deleteLog(log.id)} style={{background:"none",border:"none",color:t.textMuted,cursor:"pointer",fontSize:"18px",padding:"3px 6px"}}>×</button>
+                    <button onClick={()=>deleteLog(log.id)} style={{background:"none",border:"none",color:t.textMuted,cursor:"pointer",fontSize:"12px",padding:"3px 6px"}}>×</button>
                   </Card>
                 );
               })}
@@ -2222,30 +2448,42 @@ export default function ActivityTracker() {
         {/* ── MOBILITY ── */}
         {view==="mobility"&&<MobilityView mtProgress={mtProgress} setMtProgress={setMtProgress} t={t}/>}
 
-        {/* ── MANAGE ── */}
-        {view==="manage"&&<ActivityManager tree={tree} setTree={setTreeAndSave} t={t}/>}
+        {/* ── SUPPS ── */}
+        {view==="supps"&&(
+          <SupplementsView suppLogs={suppLogs} setSuppLogs={setSuppLogs} t={t}/>
+        )}
 
-        {/* ── OURA ── */}
-        {view==="oura"&&<OuraPanel token={ouraToken} setToken={setOuraToken} ouraData={ouraData} fetchOura={fetchOura} fetching={fetching} ouraError={ouraError} t={t}/>}
+        {/* ── MANAGE (accessible from Log screen) ── */}
+        {view==="manage"&&(
+          <>
+            <button onClick={()=>setView("log")} style={{background:"none",border:"none",color:t.accent,cursor:"pointer",fontSize:"14px",fontFamily:"inherit",padding:"4px 0",marginBottom:"16px",display:"flex",alignItems:"center",gap:"6px"}}>
+              ‹ Back to Log
+            </button>
+            <ActivityManager tree={tree} setTree={setTreeAndSave} t={t}/>
+            <div style={{marginTop:"24px"}}>
+              <Label t={t}>OURA INTEGRATION</Label>
+              <OuraPanel token={ouraToken} setToken={setOuraToken} ouraData={ouraData} fetchOura={fetchOura} fetching={fetching} ouraError={ouraError} t={t}/>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Bottom Tab Bar */}
       <div style={{
         position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",
         width:"100%",maxWidth:"390px",
-        background: dark?"rgba(12,12,14,0.95)":"rgba(250,250,250,0.95)",
-        backdropFilter:"blur(16px)",
-        borderTop:`1px solid ${t.border}`,
+        background: dark ? "#2c2c2e" : "#e5e5ea",
+        borderTop: dark ? "1px solid #3a3a3c" : "1px solid #c7c7cc",
         display:"grid",gridTemplateColumns:"repeat(7,1fr)",
-        paddingBottom:"18px",paddingTop:"6px",zIndex:100,
+        paddingBottom:"18px",paddingTop:"8px",zIndex:100,
       }}>
         {TABS.map(tab=>(
-          <button key={tab.id} onClick={()=>setView(tab.id)} style={{
+          <button key={tab.id} onClick={()=>tab.id==="theme"?toggleDark():setView(tab.id)} style={{
             background:"none",border:"none",cursor:"pointer",
-            display:"flex",flexDirection:"column",alignItems:"center",gap:"2px",padding:"5px 0",
+            display:"flex",flexDirection:"column",alignItems:"center",gap:"3px",padding:"5px 0",
           }}>
-            <span style={{fontSize:"15px",fontWeight:"700",color:view===tab.id?t.accent:t.textMuted,fontFamily:"monospace"}}>{tab.icon}</span>
-            <span style={{fontSize:"9px",letterSpacing:"0.3px",color:view===tab.id?t.accent:t.textMuted,fontWeight:view===tab.id?"700":"400"}}>{tab.label}</span>
+            <span style={{fontSize:"16px",fontWeight:"700",color:view===tab.id?t.accent: dark ? "#8e8e93" : "#8e8e93",fontFamily:"monospace"}}>{tab.icon}</span>
+            <span style={{fontSize:"10px",letterSpacing:"0.3px",color:view===tab.id?t.accent: dark ? "#8e8e93" : "#8e8e93",fontWeight:view===tab.id?"700":"500"}}>{tab.label}</span>
           </button>
         ))}
       </div>

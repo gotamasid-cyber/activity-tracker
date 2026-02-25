@@ -2159,7 +2159,7 @@ export default function ActivityTracker() {
     { id:"mobility", label:"Mobility", icon:"🔁" },
     { id:"calendar", label:"Calendar", icon:"▦"  },
     { id:"log",      label:"Log",      icon:"+" },
-    { id:"history",  label:"History",  icon:"≡"  },
+    { id:"manage",   label:"Manage",   icon:"✎"  },
     { id:"stats",    label:"Stats",    icon:"↗"  },
     { id:"theme",    label:dark?"Light":"Dark", icon:dark?"☀️":"🌙" },
   ];
@@ -2502,14 +2502,14 @@ export default function ActivityTracker() {
               ))}
             </div>
 
-            {/* Manage link */}
-            <button onClick={()=>setView("manage")} style={{
+            {/* History link */}
+            <button onClick={()=>setView("history")} style={{
               background:"none",border:`1px solid ${t.border}`,borderRadius:"10px",
               cursor:"pointer",color:t.textSub,fontSize:"13px",fontFamily:"inherit",
               fontWeight:"500",padding:"12px",marginTop:"14px",width:"100%",
               display:"flex",alignItems:"center",justifyContent:"center",gap:"6px",
             }}>
-              ✎ Manage Activities & Oura
+              ≡ View Full History
             </button>
           </div>
         )}
@@ -2520,6 +2520,9 @@ export default function ActivityTracker() {
         {/* ── HISTORY ── */}
         {view==="history"&&(
           <div>
+            <button onClick={()=>setView("log")} style={{background:"none",border:"none",color:t.accent,cursor:"pointer",fontSize:"14px",fontFamily:"inherit",padding:"4px 0",marginBottom:"14px",display:"flex",alignItems:"center",gap:"6px"}}>
+              ‹ Back to Log
+            </button>
             <div style={{fontSize:"12px",color:t.textMuted,marginBottom:"14px"}}>{logs.length} entries</div>
             {!logs.length&&<div style={{textAlign:"center",padding:"50px 0",color:t.textMuted}}>Nothing logged yet.</div>}
             <div style={{display:"flex",flexDirection:"column",gap:"8px"}}>
@@ -2556,12 +2559,9 @@ export default function ActivityTracker() {
           <SupplementsView suppLogs={suppLogs} setSuppLogs={setSuppLogs} t={t}/>
         )}
 
-        {/* ── MANAGE (accessible from Log screen) ── */}
+        {/* ── MANAGE ── */}
         {view==="manage"&&(
           <>
-            <button onClick={()=>setView("log")} style={{background:"none",border:"none",color:t.accent,cursor:"pointer",fontSize:"14px",fontFamily:"inherit",padding:"4px 0",marginBottom:"16px",display:"flex",alignItems:"center",gap:"6px"}}>
-              ‹ Back to Log
-            </button>
             <ActivityManager tree={tree} setTree={setTreeAndSave} t={t}/>
             <div style={{marginTop:"24px"}}>
               <Label t={t}>OURA INTEGRATION</Label>

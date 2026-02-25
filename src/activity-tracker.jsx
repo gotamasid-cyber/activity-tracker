@@ -354,6 +354,60 @@ function OuraBadge({ data, t }) {
   );
 }
 
+// ─── Oura-style Score Ring ───────────────────────────────────────────────────
+function ScoreRing({ score, maxScore, label, icon, color, secondaryScore, secondaryLabel, secondaryColor, size=160, t }) {
+  const r = size * 0.4;
+  const r2 = size * 0.32;
+  const cx = size/2, cy = size/2;
+  const circumference = 2 * Math.PI * r;
+  const circumference2 = 2 * Math.PI * r2;
+  const pct = maxScore > 0 ? Math.min(score / maxScore, 1) : 0;
+  const pct2 = secondaryScore !== undefined && maxScore > 0 ? Math.min(secondaryScore / maxScore, 1) : 0;
+  const strokeDash = circumference * pct;
+  const strokeDash2 = circumference2 * pct2;
+  const gradId = `ring_${label}_${color}`.replace(/[^a-zA-Z0-9]/g,'');
+
+  return (
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",position:"relative"}}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{filter:`drop-shadow(0 0 20px ${color}33)`}}>
+        <defs>
+          <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity="1"/>
+            <stop offset="100%" stopColor={color} stopOpacity="0.5"/>
+          </linearGradient>
+          {secondaryColor && (
+            <linearGradient id={gradId+"2"} x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor={secondaryColor} stopOpacity="1"/>
+              <stop offset="100%" stopColor={secondaryColor} stopOpacity="0.5"/>
+            </linearGradient>
+          )}
+        </defs>
+        {/* Background track */}
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke={t.surface2} strokeWidth="8" opacity="0.5"/>
+        {/* Progress arc */}
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke={`url(#${gradId})`} strokeWidth="8" strokeLinecap="round"
+          strokeDasharray={`${strokeDash} ${circumference}`}
+          transform={`rotate(-90 ${cx} ${cy})`}
+          style={{transition:"stroke-dasharray 1s cubic-bezier(0.4,0,0.2,1)"}}
+        />
+        {/* Secondary ring */}
+        {secondaryScore !== undefined && (
+          <>
+            <circle cx={cx} cy={cy} r={r2} fill="none" stroke={t.surface2} strokeWidth="6" opacity="0.3"/>
+            <circle cx={cx} cy={cy} r={r2} fill="none" stroke={`url(#${gradId+"2"})`} strokeWidth="6" strokeLinecap="round"
+              strokeDasharray={`${strokeDash2} ${circumference2}`}
+              transform={`rotate(-90 ${cx} ${cy})`}
+              style={{transition:"stroke-dasharray 1s cubic-bezier(0.4,0,0.2,1)"}}
+            />
+          </>
+        )}
+        {/* Center content */}
+        <text x={cx} y={cy-6} textAnchor="middle" fill={t.text} fontSize="28" fontWeight="800" fontFamily="'SF Pro Display',-apple-system,sans-serif">{score}</text>
+        <text x={cx} y={cy+14} textAnchor="middle" fill={t.textSub} fontSize="10" fontWeight="500" letterSpacing="1.5">{label}</text>
+      </svg>
+    </div>
+  );
+}
 // ─── Calendar ─────────────────────────────────────────────────────────────────
 function CalendarView({ logs, ouraData, tree, mtProgress, t, period }) {
   const [vd, setVd] = useState(new Date());
@@ -1697,35 +1751,41 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
         /* ── OVERVIEW ── */
         <div>
 
-          {/* ── PRIMARY: Consistency score ── */}
-          <Card t={t} style={{padding:"20px 18px",marginBottom:"14px"}}>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"16px"}}>
+          {/* ── PRIMARY: Consistency score — Oura style ── */}
+          <Card t={t} style={{padding:"24px 20px",marginBottom:"16px"}} glow>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"20px"}}>
               <div>
-                <div style={{fontSize:"14px",color:t.textSub,marginBottom:"4px",letterSpacing:"1px"}}>ACTIVE DAYS</div>
+                <div style={{fontSize:"10px",color:t.textMuted,marginBottom:"6px",letterSpacing:"1.5px",fontWeight:"600"}}>ACTIVE DAYS</div>
                 <div style={{display:"flex",alignItems:"baseline",gap:"6px"}}>
-                  <span style={{fontSize:"42px",fontWeight:"800",color:scoreColor(pctActive),lineHeight:1}}>{activeDays}</span>
-                  <span style={{fontSize:"12px",color:t.textMuted,fontWeight:"400"}}>/ {elapsed}</span>
+                  <span style={{fontSize:"48px",fontWeight:"800",color:scoreColor(pctActive),lineHeight:1,letterSpacing:"-2px",textShadow:`0 0 30px ${scoreColor(pctActive)}33`}}>{activeDays}</span>
+                  <span style={{fontSize:"14px",color:t.textMuted,fontWeight:"400"}}>/ {elapsed}</span>
                 </div>
-                <div style={{fontSize:"14px",color:t.textSub,marginTop:"4px"}}>
-                  {streak > 0 && <span style={{color:"#f59e0b",fontWeight:"600"}}>🔥 {streak} day streak · </span>}
+                <div style={{fontSize:"12px",color:t.textSub,marginTop:"8px"}}>
+                  {streak > 0 && <span style={{color:"#fbbf24",fontWeight:"700"}}>🔥 {streak} day streak · </span>}
                   {missedDays > 0 ? `${missedDays} missed` : "No missed days!"}
                   {restDays > 0 && ` · ${restDays} rest`}
                 </div>
               </div>
-              {/* Circular score */}
-              <div style={{position:"relative",width:"72px",height:"72px",flexShrink:0}}>
-                <svg width="72" height="72" viewBox="0 0 72 72">
-                  <circle cx="36" cy="36" r="30" fill="none" stroke={t.surface2} strokeWidth="7"/>
-                  <circle cx="36" cy="36" r="30" fill="none"
-                    stroke={scoreColor(pctActive)} strokeWidth="7"
-                    strokeDasharray={`${pctActive*1.885} 188.5`}
+              {/* Glowing circular score */}
+              <div style={{position:"relative",width:"80px",height:"80px",flexShrink:0}}>
+                <svg width="80" height="80" viewBox="0 0 80 80" style={{filter:`drop-shadow(0 0 12px ${scoreColor(pctActive)}44)`}}>
+                  <defs>
+                    <linearGradient id="statsRingGrad" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor={scoreColor(pctActive)} stopOpacity="1"/>
+                      <stop offset="100%" stopColor={scoreColor(pctActive)} stopOpacity="0.4"/>
+                    </linearGradient>
+                  </defs>
+                  <circle cx="40" cy="40" r="33" fill="none" stroke={t.surface2} strokeWidth="6" opacity="0.4"/>
+                  <circle cx="40" cy="40" r="33" fill="none"
+                    stroke="url(#statsRingGrad)" strokeWidth="6"
+                    strokeDasharray={`${pctActive*2.073} 207.3`}
                     strokeLinecap="round"
-                    transform="rotate(-90 36 36)"
-                    style={{transition:"stroke-dasharray 0.6s ease"}}
+                    transform="rotate(-90 40 40)"
+                    style={{transition:"stroke-dasharray 0.8s cubic-bezier(0.4,0,0.2,1)"}}
                   />
                 </svg>
                 <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
-                  <span style={{fontSize:"12px",fontWeight:"800",color:scoreColor(pctActive)}}>{pctActive}%</span>
+                  <span style={{fontSize:"18px",fontWeight:"800",color:scoreColor(pctActive),letterSpacing:"-0.5px"}}>{pctActive}%</span>
                 </div>
               </div>
             </div>
@@ -1734,12 +1794,12 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
             <div style={{display:"flex",gap:"8px"}}>
               {[
                 {label:"Active",  value:activeDays, color:t.accent},
-                {label:"Rest",    value:restDays,   color:"#eab308"},
-                {label:"Missed",  value:missedDays, color:"#ef4444"},
+                {label:"Rest",    value:restDays,   color:"#fbbf24"},
+                {label:"Missed",  value:missedDays, color:t.danger||"#f87171"},
               ].map(item=>(
-                <div key={item.label} style={{flex:1,textAlign:"center",padding:"8px 4px",background:item.color+"14",borderRadius:"8px",border:`1px solid ${item.color}33`}}>
-                  <div style={{fontSize:"14px",fontWeight:"700",color:item.value>0?item.color:t.textMuted}}>{item.value}</div>
-                  <div style={{fontSize:"14px",color:t.textMuted,letterSpacing:"1px",marginTop:"2px"}}>{item.label.toUpperCase()}</div>
+                <div key={item.label} style={{flex:1,textAlign:"center",padding:"10px 4px",background:item.color+"0c",borderRadius:"12px",border:`1px solid ${item.color}1a`}}>
+                  <div style={{fontSize:"18px",fontWeight:"800",color:item.value>0?item.color:t.textMuted,letterSpacing:"-0.5px"}}>{item.value}</div>
+                  <div style={{fontSize:"9px",color:t.textMuted,letterSpacing:"1.2px",marginTop:"3px",fontWeight:"600"}}>{item.label.toUpperCase()}</div>
                 </div>
               ))}
             </div>
@@ -1891,32 +1951,33 @@ function SupplementsView({ suppLogs, setSuppLogs, t, period }) {
 
   return (
     <div>
-      {/* Today's check-in */}
-      <Card t={t} style={{padding:"16px",marginBottom:"14px"}}>
-        <Label t={t}>TODAY</Label>
-        <div style={{display:"flex",gap:"10px"}}>
+      {/* Today's check-in — Oura-style tap cards */}
+      <Card t={t} style={{padding:"20px",marginBottom:"16px"}}>
+        <div style={{display:"flex",gap:"12px"}}>
           {[
             { key: "supplements", label: "Supplements", icon: "💊", color: SUPP_COLOR, checked: todayEntry.supplements },
             { key: "creatine",    label: "Creatine",    icon: "⚡", color: CREATINE_COLOR, checked: todayEntry.creatine },
           ].map(item => (
             <button key={item.key} onClick={() => toggle(today, item.key)} style={{
-              flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:"8px",
-              padding:"14px 8px", borderRadius:"12px", cursor:"pointer",
-              fontFamily:"inherit", transition:"all 0.15s",
-              background: item.checked ? item.color+"18" : t.surface2,
-              border: `1.5px solid ${item.checked ? item.color : t.border}`,
+              flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:"10px",
+              padding:"20px 8px", borderRadius:"16px", cursor:"pointer",
+              fontFamily:"inherit",
+              transition:"all 0.3s cubic-bezier(0.4,0,0.2,1)",
+              background: item.checked ? `linear-gradient(135deg, ${item.color}20, ${item.color}08)` : t.surface2,
+              border: `1.5px solid ${item.checked ? item.color+"50" : t.border}`,
+              boxShadow: item.checked ? `0 0 24px ${item.color}20, inset 0 0 20px ${item.color}08` : "none",
             }}>
-              <div style={{
-                width:"28px", height:"28px", borderRadius:"8px",
-                background: item.checked ? item.color : t.surface2,
-                border: `2px solid ${item.checked ? item.color : t.border}`,
-                display:"flex", alignItems:"center", justifyContent:"center",
-                fontSize:"14px", color:"#fff", transition:"all 0.15s",
-              }}>
-                {item.checked ? "✓" : ""}
-              </div>
-              <span style={{fontSize:"16px"}}>{item.icon}</span>
-              <span style={{fontSize:"13px",fontWeight:"600",color: item.checked ? item.color : t.text}}>
+              {/* Mini ring indicator */}
+              <svg width="44" height="44" viewBox="0 0 44 44">
+                <circle cx="22" cy="22" r="18" fill="none" stroke={t.surface2} strokeWidth="3" opacity="0.5"/>
+                <circle cx="22" cy="22" r="18" fill="none" stroke={item.checked ? item.color : t.border} strokeWidth="3" strokeLinecap="round"
+                  strokeDasharray={item.checked ? `${2*Math.PI*18} 0` : `0 ${2*Math.PI*18}`}
+                  transform="rotate(-90 22 22)"
+                  style={{transition:"stroke-dasharray 0.6s cubic-bezier(0.4,0,0.2,1)"}}
+                />
+                <text x="22" y="26" textAnchor="middle" fontSize="16">{item.checked ? "✓" : item.icon}</text>
+              </svg>
+              <span style={{fontSize:"12px",fontWeight:"700",color: item.checked ? item.color : t.textSub,letterSpacing:"0.5px"}}>
                 {item.label}
               </span>
             </button>
@@ -1924,35 +1985,33 @@ function SupplementsView({ suppLogs, setSuppLogs, t, period }) {
         </div>
       </Card>
 
-      {/* Month stats with missed percentages */}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"8px",marginBottom:"14px"}}>
-        <Card t={t} style={{padding:"12px 8px",textAlign:"center"}}>
-          <div style={{fontSize:"15px",fontWeight:"700",color:suppStreak > 0 ? "#f59e0b" : t.textMuted}}>{suppStreak}d</div>
-          <div style={{fontSize:"11px",color:t.textMuted,letterSpacing:"0.5px",marginTop:"3px"}}>STREAK</div>
-        </Card>
-        <Card t={t} style={{padding:"12px 8px",textAlign:"center"}}>
-          <div style={{fontSize:"15px",fontWeight:"700",color:monthStats.suppMissedPct > 20 ? "#ef4444" : "#22c55e"}}>{monthStats.suppMissedPct}%</div>
-          <div style={{fontSize:"11px",color:t.textMuted,letterSpacing:"0.5px",marginTop:"3px"}}>💊 MISSED</div>
-        </Card>
-        <Card t={t} style={{padding:"12px 8px",textAlign:"center"}}>
-          <div style={{fontSize:"15px",fontWeight:"700",color:monthStats.creatineMissedPct > 20 ? "#ef4444" : "#22c55e"}}>{monthStats.creatineMissedPct}%</div>
-          <div style={{fontSize:"11px",color:t.textMuted,letterSpacing:"0.5px",marginTop:"3px"}}>⚡ MISSED</div>
-        </Card>
+      {/* Stats row — Oura-style big numbers */}
+      <div style={{display:"flex",gap:"8px",marginBottom:"16px"}}>
+        {[
+          {value: suppStreak+"d", label:"Streak", color: suppStreak > 0 ? "#fbbf24" : t.textMuted},
+          {value: monthStats.suppTakenPct+"%", label:"💊 Taken", color: monthStats.suppTakenPct >= 80 ? t.success||"#34d399" : monthStats.suppTakenPct >= 50 ? "#fbbf24" : t.danger||"#f87171"},
+          {value: monthStats.creatineTakenPct+"%", label:"⚡ Taken", color: monthStats.creatineTakenPct >= 80 ? t.success||"#34d399" : monthStats.creatineTakenPct >= 50 ? "#fbbf24" : t.danger||"#f87171"},
+        ].map(s=>(
+          <Card t={t} key={s.label} style={{flex:1,padding:"16px 8px",textAlign:"center"}}>
+            <div style={{fontSize:"20px",fontWeight:"800",color:s.color,letterSpacing:"-0.5px",textShadow:`0 0 16px ${s.color}22`}}>{s.value}</div>
+            <div style={{fontSize:"10px",color:t.textMuted,letterSpacing:"1px",marginTop:"6px",fontWeight:"600"}}>{s.label.toUpperCase()}</div>
+          </Card>
+        ))}
       </div>
-
-      {/* Adherence bars */}
-      <Card t={t} style={{padding:"14px 16px",marginBottom:"14px"}}>
+        <Card t={t} style={{padding:"12px 8px",textAlign:"center"}}>
+      {/* Adherence bars — sleek progress */}
+      <Card t={t} style={{padding:"16px 18px",marginBottom:"16px"}}>
         {[
           { label:"Supplements", color:SUPP_COLOR, taken:monthStats.suppDays, total:monthStats.totalDays, pct:monthStats.suppTakenPct },
           { label:"Creatine", color:CREATINE_COLOR, taken:monthStats.creatineDays, total:monthStats.totalDays, pct:monthStats.creatineTakenPct },
         ].map(item => (
-          <div key={item.label} style={{marginBottom:"10px"}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"5px"}}>
-              <span style={{fontSize:"13px",color:t.text,fontWeight:"500"}}>{item.label}</span>
-              <span style={{fontSize:"13px",color:t.textSub}}>{item.taken}/{item.total} days · {item.pct}%</span>
+          <div key={item.label} style={{marginBottom:"12px"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"6px"}}>
+              <span style={{fontSize:"13px",color:t.text,fontWeight:"600"}}>{item.label}</span>
+              <span style={{fontSize:"12px",color:t.textSub,fontWeight:"500"}}>{item.taken}/{item.total} · <span style={{color:item.color,fontWeight:"700"}}>{item.pct}%</span></span>
             </div>
-            <div style={{background:t.surface2,borderRadius:"4px",height:"6px",overflow:"hidden"}}>
-              <div style={{height:"100%",width:item.pct+"%",background:item.color,borderRadius:"4px",transition:"width 0.5s"}}/>
+            <div style={{background:t.surface2,borderRadius:"6px",height:"6px",overflow:"hidden"}}>
+              <div style={{height:"100%",width:item.pct+"%",background:`linear-gradient(90deg, ${item.color}, ${item.color}aa)`,borderRadius:"6px",transition:"width 0.8s cubic-bezier(0.4,0,0.2,1)",boxShadow:`0 0 8px ${item.color}33`}}/>
             </div>
           </div>
         ))}
@@ -2174,10 +2233,10 @@ export default function ActivityTracker() {
     return [...tree].sort((a,b) => (counts[b.id]||0) - (counts[a.id]||0));
   }, [tree, logs]);
 
-  // ── localStorage helpers (works on Vercel / any browser) ─────────────────
+  // ── localStorage helpers (works on Vercel / any browser, degrades in sandboxed envs) ─────────────────
   const store = {
-    get: (key) => { const v = localStorage.getItem(key); return v !== null ? { value: v } : null; },
-    set: (key, value) => { localStorage.setItem(key, value); },
+    get: (key) => { try { const v = localStorage.getItem(key); return v !== null ? { value: v } : null; } catch(e) { return null; } },
+    set: (key, value) => { try { localStorage.setItem(key, value); } catch(e) {} },
   };
 
   // ── Persist tree to storage when it changes ──────────────────────────────
@@ -2315,6 +2374,18 @@ export default function ActivityTracker() {
   const hasOura   = Object.keys(ouraData).length>0;
   const ouraToday = ouraData[todayStr()];
 
+  // ── Theme + PWA setup ─────────────────────────────────────────
+  useEffect(()=>{
+    try {
+      const meta = document.querySelector('meta[name="theme-color"]') || (() => {
+        const m = document.createElement('meta'); m.name='theme-color'; document.head.appendChild(m); return m;
+      })();
+      meta.content = dark ? '#050507' : '#f5f5f7';
+      const statusMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+      if (statusMeta) statusMeta.content = dark ? 'black-translucent' : 'default';
+    } catch(e) {}
+  }, [dark]);
+
   const TABS = [
     { id:"log",      label:"Log",      icon:"+" },
     { id:"mobility", label:"Mobility", icon:"◆" },
@@ -2334,62 +2405,6 @@ export default function ActivityTracker() {
       {/* Ambient glow orbs */}
       <div style={{position:"fixed",top:"-120px",right:"-80px",width:"300px",height:"300px",borderRadius:"50%",background:dark?"rgba(124,58,237,0.08)":"rgba(124,58,237,0.04)",filter:"blur(80px)",pointerEvents:"none",zIndex:0}}/>
       <div style={{position:"fixed",bottom:"100px",left:"-100px",width:"250px",height:"250px",borderRadius:"50%",background:dark?"rgba(52,211,153,0.05)":"rgba(52,211,153,0.03)",filter:"blur(80px)",pointerEvents:"none",zIndex:0}}/>
-      {/* Dynamic theme color + PWA icon setup */}
-      {useEffect(()=>{
-        const meta = document.querySelector('meta[name="theme-color"]') || (() => {
-          const m = document.createElement('meta'); m.name='theme-color'; document.head.appendChild(m); return m;
-        })();
-        meta.content = dark ? '#050507' : '#f5f5f7';
-        const statusMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
-        if (statusMeta) statusMeta.content = dark ? 'black-translucent' : 'default';
-
-        // PWA icon setup — render SVG to canvas → PNG (Safari needs PNG for apple-touch-icon)
-        if (!document.querySelector('link[rel="apple-touch-icon"]')) {
-          const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0f0f14"/><stop offset="100%" stop-color="#1a1a2e"/></linearGradient><linearGradient id="bolt" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0%" stop-color="#818cf8"/><stop offset="50%" stop-color="#6366f1"/><stop offset="100%" stop-color="#4f46e5"/></linearGradient><linearGradient id="ring" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6366f1"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs><rect width="512" height="512" rx="112" fill="url(#bg)"/><circle cx="256" cy="240" r="200" fill="#6366f1" opacity="0.04"/><circle cx="256" cy="256" r="155" fill="none" stroke="#1e1e3a" stroke-width="18"/><circle cx="256" cy="256" r="155" fill="none" stroke="url(#ring)" stroke-width="18" stroke-dasharray="730 974" stroke-linecap="round" transform="rotate(-90 256 256)" opacity="0.9"/><circle cx="256" cy="256" r="125" fill="none" stroke="#1e1e3a" stroke-width="12"/><circle cx="256" cy="256" r="125" fill="none" stroke="#06b6d4" stroke-width="12" stroke-dasharray="550 785" stroke-linecap="round" transform="rotate(-90 256 256)" opacity="0.7"/><path d="M248,204 L272,204 L260,246 L284,246 L244,308 L254,264 L228,264 Z" fill="url(#bolt)" opacity="0.95"/><circle cx="256" cy="82" r="6" fill="#818cf8" opacity="0.8"/><circle cx="383" cy="145" r="4" fill="#06b6d4" opacity="0.6"/></svg>`;
-          
-          const img = new Image();
-          const svgBlob = new Blob([iconSvg], {type: 'image/svg+xml'});
-          const svgUrl = URL.createObjectURL(svgBlob);
-          
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = 180; canvas.height = 180;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, 180, 180);
-            const pngUrl = canvas.toDataURL('image/png');
-            URL.revokeObjectURL(svgUrl);
-            
-            // Apple touch icon (PNG)
-            const apple = document.createElement('link');
-            apple.rel = 'apple-touch-icon'; apple.sizes = '180x180'; apple.href = pngUrl;
-            document.head.appendChild(apple);
-            
-            // Favicon (also PNG for broad compat)
-            const fav = document.createElement('link');
-            fav.rel = 'icon'; fav.type = 'image/png'; fav.href = pngUrl;
-            document.head.appendChild(fav);
-          };
-          img.src = svgUrl;
-          
-          // Web app capable
-          const capable = document.createElement('meta');
-          capable.name = 'apple-mobile-web-app-capable'; capable.content = 'yes';
-          document.head.appendChild(capable);
-          
-          // Status bar style
-          const statusBar = document.createElement('meta');
-          statusBar.name = 'apple-mobile-web-app-status-bar-style'; statusBar.content = 'black-translucent';
-          document.head.appendChild(statusBar);
-          
-          // App title
-          const appTitle = document.createElement('meta');
-          appTitle.name = 'apple-mobile-web-app-title'; appTitle.content = 'Activity';
-          document.head.appendChild(appTitle);
-
-          // Update page title
-          document.title = 'Activity Tracker';
-        }
-      }, [dark])}
       {/* Content */}
       <div style={{flex:1,overflowY:"auto",padding:"12px 20px 96px",position:"relative",zIndex:1}}>
 
@@ -2787,7 +2802,53 @@ export default function ActivityTracker() {
         {/* ── HOME: Calendar + Stats + Supplements ── */}
         {view==="calendar"&&(
           <div>
-            {/* Period toggle at top */}
+            {/* ── HERO: Score Ring ── */}
+            <div style={{
+              display:"flex", flexDirection:"column", alignItems:"center",
+              padding:"8px 0 24px",
+              position:"relative",
+            }}>
+              {/* Ambient glow behind ring */}
+              <div style={{position:"absolute",top:"20px",left:"50%",transform:"translateX(-50%)",width:"180px",height:"180px",borderRadius:"50%",background:`radial-gradient(circle, ${t.accent}15 0%, transparent 70%)`,pointerEvents:"none"}}/>
+              
+              <ScoreRing
+                score={streak}
+                maxScore={Math.max(streak, 30)}
+                label="DAY STREAK"
+                color={t.accent}
+                secondaryScore={actLogs.filter(l => {
+                  const d = new Date(l.date+"T12:00:00");
+                  const now = new Date();
+                  return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+                }).length}
+                secondaryLabel="THIS MONTH"
+                secondaryColor={t.success || "#34d399"}
+                size={170}
+                t={t}
+              />
+              
+              {/* Stats row beneath ring */}
+              <div style={{display:"flex",gap:"24px",marginTop:"20px",justifyContent:"center"}}>
+                {[
+                  {value: actLogs.length, label:"Sessions", color:t.accent},
+                  {value: (totalMin/60).toFixed(1)+"h", label:"Total", color: t.success || "#34d399"},
+                  {value: (()=>{
+                    const suppToday = suppLogs[todayStr()] || {};
+                    return (suppToday.supplements && suppToday.creatine) ? "✓" : suppToday.supplements || suppToday.creatine ? "½" : "–";
+                  })(), label:"Supps", color:"#a78bfa"},
+                ].map(s=>(
+                  <div key={s.label} style={{textAlign:"center"}}>
+                    <div style={{fontSize:"20px",fontWeight:"800",color:s.color,letterSpacing:"-0.5px",textShadow:`0 0 20px ${s.color}33`}}>{s.value}</div>
+                    <div style={{fontSize:"10px",color:t.textMuted,letterSpacing:"1.2px",marginTop:"4px",fontWeight:"600"}}>{s.label.toUpperCase()}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── Section divider ── */}
+            <div style={{height:"1px",background:`linear-gradient(90deg, transparent, ${t.border}, transparent)`,margin:"4px 0 20px"}}/>
+
+            {/* Period toggle */}
             <div style={{display:"flex",background:t.surface,borderRadius:"14px",padding:"3px",marginBottom:"20px",border:`1px solid ${t.border}`,boxShadow:t.cardShadow}}>
               {[["month","Month"],["year","Year"]].map(([p,lbl])=>(
                 <button key={p} onClick={()=>setCalPeriod(p)} style={{
@@ -2804,19 +2865,25 @@ export default function ActivityTracker() {
               ))}
             </div>
 
+            {/* Section label */}
+            <Label t={t}>Activity</Label>
+
             {/* Activity Calendar */}
             <CalendarView logs={logs} ouraData={ouraData} tree={tree} mtProgress={mtProgress} t={t} period={calPeriod}/>
             
+            {/* Divider */}
+            <div style={{height:"1px",background:`linear-gradient(90deg, transparent, ${t.border}, transparent)`,margin:"24px 0 20px"}}/>
+
             {/* Activity Stats */}
-            <div style={{marginTop:"20px"}}>
-              <StatsView logs={logs} actLogs={actLogs} restLogs={restLogs} tree={tree} ouraData={ouraData} hasOura={hasOura} totalMin={totalMin} streak={streak} activityCounts={activityCounts} mtProgress={mtProgress} t={t} forcePeriod={calPeriod}/>
-            </div>
+            <Label t={t}>Stats</Label>
+            <StatsView logs={logs} actLogs={actLogs} restLogs={restLogs} tree={tree} ouraData={ouraData} hasOura={hasOura} totalMin={totalMin} streak={streak} activityCounts={activityCounts} mtProgress={mtProgress} t={t} forcePeriod={calPeriod}/>
+
+            {/* Divider */}
+            <div style={{height:"1px",background:`linear-gradient(90deg, transparent, ${t.border}, transparent)`,margin:"24px 0 20px"}}/>
 
             {/* Supplements Calendar & Stats */}
-            <div style={{marginTop:"20px"}}>
-              <Label t={t}>SUPPLEMENTS</Label>
-              <SupplementsView suppLogs={suppLogs} setSuppLogs={setSuppLogs} t={t} period={calPeriod}/>
-            </div>
+            <Label t={t}>Supplements</Label>
+            <SupplementsView suppLogs={suppLogs} setSuppLogs={setSuppLogs} t={t} period={calPeriod}/>
           </div>
         )}
 

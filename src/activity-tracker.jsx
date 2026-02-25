@@ -2021,39 +2021,42 @@ export default function ActivityTracker() {
     return [...tree].sort((a,b) => (counts[b.id]||0) - (counts[a.id]||0));
   }, [tree, logs]);
 
+  // ── localStorage helpers (works on Vercel / any browser) ─────────────────
+  const store = {
+    get: (key) => { const v = localStorage.getItem(key); return v !== null ? { value: v } : null; },
+    set: (key, value) => { localStorage.setItem(key, value); },
+  };
+
   // ── Persist tree to storage when it changes ──────────────────────────────
   useEffect(()=>{
-    if(!loading) window.storage.set("activity_tree", JSON.stringify(tree)).catch(()=>{});
+    if(!loading) store.set("activity_tree", JSON.stringify(tree));
   },[tree]);
 
   // ── Load ─────────────────────────────────────────────────────────────────
   useEffect(()=>{
-    (async()=>{
-      setLoading(true);
-      const safeGet = async (key) => { try { return await window.storage.get(key); } catch(e) { return null; } };
-      try {
-        const r=await safeGet("activity_logs_v3"); if(r) setLogs(JSON.parse(r.value));
-        const tr=await safeGet("activity_tree");   if(tr) setTree(JSON.parse(tr.value));
-        const ot=await safeGet("oura_token");      if(ot) setOuraToken(ot.value);
-        const od=await safeGet("oura_data");       if(od) setOuraData(JSON.parse(od.value));
-        const dm=await safeGet("dark_mode");       if(dm) setDark(dm.value==="true");
-        const mp=await safeGet("mt_progress");     if(mp) setMtProgressRaw(JSON.parse(mp.value));
-        const sl=await safeGet("supp_logs");       if(sl) setSuppLogsRaw(JSON.parse(sl.value));
-      } catch(e){}
-      setLoading(false);
-    })();
+    setLoading(true);
+    try {
+      const r=store.get("activity_logs_v3"); if(r) setLogs(JSON.parse(r.value));
+      const tr=store.get("activity_tree");   if(tr) setTree(JSON.parse(tr.value));
+      const ot=store.get("oura_token");      if(ot) setOuraToken(ot.value);
+      const od=store.get("oura_data");       if(od) setOuraData(JSON.parse(od.value));
+      const dm=store.get("dark_mode");       if(dm) setDark(dm.value==="true");
+      const mp=store.get("mt_progress");     if(mp) setMtProgressRaw(JSON.parse(mp.value));
+      const sl=store.get("supp_logs");       if(sl) setSuppLogsRaw(JSON.parse(sl.value));
+    } catch(e){}
+    setLoading(false);
   },[]);
 
-  const saveLogs = async nl => { try { await window.storage.set("activity_logs_v3",JSON.stringify(nl)); } catch(e){} };
-  const toggleDark = () => { const nd=!dark; setDark(nd); window.storage.set("dark_mode",String(nd)).catch(()=>{}); };
+  const saveLogs = nl => { try { store.set("activity_logs_v3",JSON.stringify(nl)); } catch(e){} };
+  const toggleDark = () => { const nd=!dark; setDark(nd); store.set("dark_mode",String(nd)); };
   const setTreeAndSave = updated => { setTree(updated); };
   const setMtProgress = updated => {
     setMtProgressRaw(updated);
-    window.storage.set("mt_progress", JSON.stringify(updated)).catch(()=>{});
+    store.set("mt_progress", JSON.stringify(updated));
   };
   const setSuppLogs = updated => {
     setSuppLogsRaw(updated);
-    window.storage.set("supp_logs", JSON.stringify(updated)).catch(()=>{});
+    store.set("supp_logs", JSON.stringify(updated));
   };
 
   // ── Oura fetch ────────────────────────────────────────────────────────────
@@ -2061,7 +2064,7 @@ export default function ActivityTracker() {
     if(!tok) return;
     setFetching(true); setOuraError("");
     try {
-      await window.storage.set("oura_token",tok);
+      store.set("oura_token",tok);
       const end=new Date(); end.setDate(end.getDate()+1);
       const start=new Date(); start.setDate(start.getDate()-90);
       const [s,e]=[toDateStr(start),toDateStr(end)];
@@ -2077,7 +2080,7 @@ export default function ActivityTracker() {
       (rj.data||[]).forEach(r=>{ merged[r.day]={date:r.day,readiness:r.score}; });
       (sj.data||[]).forEach(s=>{ if(!merged[s.day]) merged[s.day]={date:s.day}; merged[s.day].sleep=s.score; });
       setOuraData(merged);
-      await window.storage.set("oura_data",JSON.stringify(merged));
+      store.set("oura_data",JSON.stringify(merged));
     } catch(e){ setOuraError("Failed: "+e.message); }
     setFetching(false);
   },[]);
@@ -2167,7 +2170,7 @@ export default function ActivityTracker() {
       fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',sans-serif",
       display:"flex", flexDirection:"column", position:"relative",
     }}>
-      {/* Dynamic theme color for status bar */}
+      {/* Dynamic theme color + PWA icon setup */}
       {useEffect(()=>{
         const meta = document.querySelector('meta[name="theme-color"]') || (() => {
           const m = document.createElement('meta'); m.name='theme-color'; document.head.appendChild(m); return m;
@@ -2175,6 +2178,36 @@ export default function ActivityTracker() {
         meta.content = dark ? '#0f0f14' : '#ffffff';
         const statusMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
         if (statusMeta) statusMeta.content = dark ? 'black-translucent' : 'default';
+
+        // PWA icon setup (runs once)
+        if (!document.querySelector('link[rel="apple-touch-icon"]')) {
+          const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0f0f14"/><stop offset="100%" stop-color="#1a1a2e"/></linearGradient><linearGradient id="bolt" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0%" stop-color="#818cf8"/><stop offset="50%" stop-color="#6366f1"/><stop offset="100%" stop-color="#4f46e5"/></linearGradient><linearGradient id="ring" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6366f1"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs><rect width="512" height="512" rx="112" fill="url(#bg)"/><circle cx="256" cy="240" r="200" fill="#6366f1" opacity="0.04"/><circle cx="256" cy="256" r="155" fill="none" stroke="#1e1e3a" stroke-width="18"/><circle cx="256" cy="256" r="155" fill="none" stroke="url(#ring)" stroke-width="18" stroke-dasharray="730 974" stroke-linecap="round" transform="rotate(-90 256 256)" opacity="0.9"/><circle cx="256" cy="256" r="125" fill="none" stroke="#1e1e3a" stroke-width="12"/><circle cx="256" cy="256" r="125" fill="none" stroke="#06b6d4" stroke-width="12" stroke-dasharray="550 785" stroke-linecap="round" transform="rotate(-90 256 256)" opacity="0.7"/><path d="M248,204 L272,204 L260,246 L284,246 L244,308 L254,264 L228,264 Z" fill="url(#bolt)" opacity="0.95"/><circle cx="256" cy="82" r="6" fill="#818cf8" opacity="0.8"/><circle cx="383" cy="145" r="4" fill="#06b6d4" opacity="0.6"/></svg>`;
+          const blob = new Blob([iconSvg], {type: 'image/svg+xml'});
+          const url = URL.createObjectURL(blob);
+          
+          // Apple touch icon
+          const apple = document.createElement('link');
+          apple.rel = 'apple-touch-icon'; apple.href = url;
+          document.head.appendChild(apple);
+          
+          // Favicon
+          const fav = document.createElement('link');
+          fav.rel = 'icon'; fav.type = 'image/svg+xml'; fav.href = url;
+          document.head.appendChild(fav);
+          
+          // Web app capable
+          const capable = document.createElement('meta');
+          capable.name = 'apple-mobile-web-app-capable'; capable.content = 'yes';
+          document.head.appendChild(capable);
+          
+          // App title
+          const appTitle = document.createElement('meta');
+          appTitle.name = 'apple-mobile-web-app-title'; appTitle.content = 'Activity';
+          document.head.appendChild(appTitle);
+
+          // Update page title
+          document.title = 'Activity Tracker';
+        }
       }, [dark])}
       {/* Content */}
       <div style={{flex:1,overflowY:"auto",padding:"12px 20px 96px"}}>

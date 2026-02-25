@@ -3,12 +3,12 @@
   "short_name": "Activity",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "background_color": "#0f0f14",
+  "theme_color": "#0f0f14",
   "icons": [
     {
-      "src": "/icon.png",
-      "sizes": "192x192",
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
       "type": "image/png"
     }
   ]

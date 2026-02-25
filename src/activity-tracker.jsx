@@ -2179,26 +2179,43 @@ export default function ActivityTracker() {
         const statusMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
         if (statusMeta) statusMeta.content = dark ? 'black-translucent' : 'default';
 
-        // PWA icon setup (runs once)
+        // PWA icon setup — render SVG to canvas → PNG (Safari needs PNG for apple-touch-icon)
         if (!document.querySelector('link[rel="apple-touch-icon"]')) {
           const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0f0f14"/><stop offset="100%" stop-color="#1a1a2e"/></linearGradient><linearGradient id="bolt" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0%" stop-color="#818cf8"/><stop offset="50%" stop-color="#6366f1"/><stop offset="100%" stop-color="#4f46e5"/></linearGradient><linearGradient id="ring" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6366f1"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs><rect width="512" height="512" rx="112" fill="url(#bg)"/><circle cx="256" cy="240" r="200" fill="#6366f1" opacity="0.04"/><circle cx="256" cy="256" r="155" fill="none" stroke="#1e1e3a" stroke-width="18"/><circle cx="256" cy="256" r="155" fill="none" stroke="url(#ring)" stroke-width="18" stroke-dasharray="730 974" stroke-linecap="round" transform="rotate(-90 256 256)" opacity="0.9"/><circle cx="256" cy="256" r="125" fill="none" stroke="#1e1e3a" stroke-width="12"/><circle cx="256" cy="256" r="125" fill="none" stroke="#06b6d4" stroke-width="12" stroke-dasharray="550 785" stroke-linecap="round" transform="rotate(-90 256 256)" opacity="0.7"/><path d="M248,204 L272,204 L260,246 L284,246 L244,308 L254,264 L228,264 Z" fill="url(#bolt)" opacity="0.95"/><circle cx="256" cy="82" r="6" fill="#818cf8" opacity="0.8"/><circle cx="383" cy="145" r="4" fill="#06b6d4" opacity="0.6"/></svg>`;
-          const blob = new Blob([iconSvg], {type: 'image/svg+xml'});
-          const url = URL.createObjectURL(blob);
           
-          // Apple touch icon
-          const apple = document.createElement('link');
-          apple.rel = 'apple-touch-icon'; apple.href = url;
-          document.head.appendChild(apple);
+          const img = new Image();
+          const svgBlob = new Blob([iconSvg], {type: 'image/svg+xml'});
+          const svgUrl = URL.createObjectURL(svgBlob);
           
-          // Favicon
-          const fav = document.createElement('link');
-          fav.rel = 'icon'; fav.type = 'image/svg+xml'; fav.href = url;
-          document.head.appendChild(fav);
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 180; canvas.height = 180;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, 180, 180);
+            const pngUrl = canvas.toDataURL('image/png');
+            URL.revokeObjectURL(svgUrl);
+            
+            // Apple touch icon (PNG)
+            const apple = document.createElement('link');
+            apple.rel = 'apple-touch-icon'; apple.sizes = '180x180'; apple.href = pngUrl;
+            document.head.appendChild(apple);
+            
+            // Favicon (also PNG for broad compat)
+            const fav = document.createElement('link');
+            fav.rel = 'icon'; fav.type = 'image/png'; fav.href = pngUrl;
+            document.head.appendChild(fav);
+          };
+          img.src = svgUrl;
           
           // Web app capable
           const capable = document.createElement('meta');
           capable.name = 'apple-mobile-web-app-capable'; capable.content = 'yes';
           document.head.appendChild(capable);
+          
+          // Status bar style
+          const statusBar = document.createElement('meta');
+          statusBar.name = 'apple-mobile-web-app-status-bar-style'; statusBar.content = 'black-translucent';
+          document.head.appendChild(statusBar);
           
           // App title
           const appTitle = document.createElement('meta');

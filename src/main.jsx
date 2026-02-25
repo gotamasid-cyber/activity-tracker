@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import ActivityTracker from './activity-tracker.jsx'
+import ActivityTracker from './activity-tracker'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

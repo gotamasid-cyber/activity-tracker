@@ -168,9 +168,9 @@ function tokens(dark) {
     border:   "#242428",
     border2:  "#2e2e33",
     text:     "#f5f5f5",
-    textSub:  "#71717a",
-    textMuted:"#3f3f46",
-    accent:   "#2563eb",
+    textSub:  "#a1a1aa",
+    textMuted:"#6b6b76",
+    accent:   "#3b82f6",
     pill:     "#1c1c1f",
     pillBorder:"#2e2e33",
   } : {
@@ -329,7 +329,7 @@ function OuraBadge({ data, t }) {
 }
 
 // ─── Calendar ─────────────────────────────────────────────────────────────────
-function CalendarView({ logs, ouraData, tree, mtProgress, t }) {
+function CalendarView({ logs, ouraData, tree, mtProgress, t, period }) {
   const [vd, setVd] = useState(new Date());
   const [sel, setSel] = useState(null);
   const yr=vd.getFullYear(), mo=vd.getMonth();
@@ -338,9 +338,11 @@ function CalendarView({ logs, ouraData, tree, mtProgress, t }) {
   const tStr=todayStr();
 
   const ds=d=>`${yr}-${String(mo+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+  const dsYr=(m,d)=>`${yr}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
   const dl=d=>logs.filter(l=>l.date===ds(d));
   const od=d=>ouraData[ds(d)];
   const canNext=new Date(yr,mo+1,1)<=new Date();
+  const canNextYr=yr<new Date().getFullYear();
 
   // Find all MT sessions completed on a given date string
   const mtOnDate = dateStr => {
@@ -358,6 +360,54 @@ function CalendarView({ logs, ouraData, tree, mtProgress, t }) {
     return sessions;
   };
 
+  // Check if a date string has activity
+  const hasActivity = dateStr => {
+    const hasLog = logs.some(l=>l.date===dateStr && !isRestId(l.activity));
+    const hasMT = Object.values(mtProgress).some(v=>v?.done && v?.date===dateStr);
+    return hasLog || hasMT;
+  };
+  const hasRest = dateStr => logs.some(l=>l.date===dateStr && isRestId(l.activity));
+
+  // ── YEAR VIEW ──
+  if (period === "year") {
+    return (
+      <div>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"16px"}}>
+          <button onClick={()=>setVd(new Date(yr-1,0,1))} style={{background:"none",border:"none",cursor:"pointer",color:t.textSub,fontSize:"14px",padding:"4px 8px"}}>‹</button>
+          <span style={{fontSize:"16px",fontWeight:"600",color:t.text}}>{yr}</span>
+          <button onClick={()=>setVd(new Date(yr+1,0,1))} disabled={!canNextYr} style={{background:"none",border:"none",cursor:canNextYr?"pointer":"default",color:canNextYr?t.textSub:t.border,fontSize:"14px",padding:"4px 8px"}}>›</button>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"10px"}}>
+          {MONTHS.map((mName,mi) => {
+            const mDim = new Date(yr,mi+1,0).getDate();
+            const mFd = new Date(yr,mi,1).getDay();
+            let active=0, rest=0, total=0;
+            for (let d=1;d<=mDim;d++) {
+              const dateStr = dsYr(mi,d);
+              if (dateStr > tStr) continue;
+              total++;
+              if (hasActivity(dateStr)) active++;
+              else if (hasRest(dateStr)) rest++;
+            }
+            const pct = total > 0 ? Math.round(active/total*100) : 0;
+            const barColor = pct >= 60 ? "#22c55e" : pct >= 30 ? "#eab308" : "#ef4444";
+            return (
+              <Card t={t} key={mi} style={{padding:"8px",textAlign:"center"}}>
+                <div style={{fontSize:"12px",fontWeight:"600",color:t.text,marginBottom:"6px"}}>{mName.slice(0,3)}</div>
+                <div style={{background:t.surface2,borderRadius:"3px",height:"4px",overflow:"hidden",marginBottom:"4px"}}>
+                  <div style={{height:"100%",width:pct+"%",background:barColor,borderRadius:"3px"}}/>
+                </div>
+                <div style={{fontSize:"11px",color:t.textSub}}>{active}d / {total}d</div>
+                <div style={{fontSize:"10px",color:barColor,fontWeight:"600"}}>{pct}%</div>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // ── MONTH VIEW ──
   const cells=[]; for(let i=0;i<fd;i++)cells.push(null); for(let d=1;d<=dim;d++)cells.push(d);
   const isPast=d=>ds(d)<tStr, isToday=d=>ds(d)===tStr;
   const selLogs=sel?dl(sel):[], selOura=sel?od(sel):null;
@@ -421,7 +471,7 @@ function CalendarView({ logs, ouraData, tree, mtProgress, t }) {
 
           return (
             <div key={d} onClick={()=>setSel(isSel?null:d)} style={{
-              aspectRatio:"1", minHeight:"38px", borderRadius:"7px",
+              aspectRatio:"1", minHeight:"36px", borderRadius:"50%",
               background: multiColor ? "transparent" : fillColor ? fillColor : t.surface2,
               border: isSel ? `2px solid ${t.text}` : todC && !fillColor ? `2px solid ${t.accent}` : `1px solid ${fillColor ? fillColor+"44" : t.border}`,
               display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
@@ -1397,10 +1447,16 @@ function CanvasConfetti({ active, onDone }) {
   );
 }
 
-function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, activityCounts, t }) {
-  const [period,       setPeriod]       = useState("month");
+function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, activityCounts, mtProgress, t, forcePeriod }) {
+  const [internalPeriod, setInternalPeriod] = useState("month");
+  const period = forcePeriod || internalPeriod;
+  const setPeriod = forcePeriod ? ()=>{} : setInternalPeriod;
   const [periodOffset, setPeriodOffset] = useState(0);
   const [drillActivity,setDrillActivity]= useState(null);
+  const [whatYouDidOpen, setWhatYouDidOpen] = useState(false);
+
+  // Reset offset when period changes externally
+  useEffect(() => { setPeriodOffset(0); setDrillActivity(null); }, [forcePeriod]);
 
   const now = new Date();
 
@@ -1432,7 +1488,19 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
   const filteredMin  = filteredAct.reduce((s,l)=>s+parseInt(l.duration||0),0);
 
   // Unique active dates and rest dates
-  const activeDates  = new Set(filteredAct.map(l=>l.date));
+  const activeDates  = (() => {
+    const dates = new Set(filteredAct.map(l=>l.date));
+    // Include mobility sessions from mtProgress
+    if (mtProgress) {
+      Object.values(mtProgress).forEach(v => {
+        if (v?.done && v?.date) {
+          const d = new Date(v.date+"T12:00:00");
+          if (d >= win.start && d <= win.end) dates.add(v.date);
+        }
+      });
+    }
+    return dates;
+  })();
   const restDates    = new Set(filteredRest.map(l=>l.date));
 
   // Days elapsed in the period (don't count future days)
@@ -1520,7 +1588,8 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
 
   return (
     <div>
-      {/* Period tabs */}
+      {/* Period tabs - hide when controlled externally */}
+      {!forcePeriod && (
       <div style={{display:"flex",background:t.surface2,borderRadius:"9px",padding:"3px",marginBottom:"14px",border:`1px solid ${t.border}`}}>
         {[["month","Month"],["year","Year"]].map(([p,lbl])=>(
           <button key={p} onClick={()=>{setPeriod(p);setPeriodOffset(0);setDrillActivity(null);}} style={{
@@ -1532,6 +1601,7 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
           }}>{lbl}</button>
         ))}
       </div>
+      )}
 
       {/* Period navigation */}
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"16px"}}>
@@ -1635,37 +1705,6 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
             </div>
           </Card>
 
-          {/* ── MONTH: day heatmap ── */}
-          {period === "month" && monthDays.length > 0 && (
-            <>
-              <Label t={t}>THIS MONTH</Label>
-              <Card t={t} style={{padding:"12px 14px",marginBottom:"14px"}}>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"3px",marginBottom:"4px"}}>
-                  {["S","M","T","W","T","F","S"].map((d,i)=>(
-                    <div key={i} style={{textAlign:"center",fontSize:"14px",color:t.textMuted,padding:"2px 0"}}>{d}</div>
-                  ))}
-                </div>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"3px"}}>
-                  {/* Empty cells for day offset */}
-                  {Array(new Date(win.start.getFullYear(),win.start.getMonth(),1).getDay()).fill(null).map((_,i)=>(
-                    <div key={"e"+i}/>
-                  ))}
-                  {monthDays.map(({d,color,isF})=>(
-                    <div key={d} style={{
-                      aspectRatio:"1",borderRadius:"5px",
-                      background:color||(isF?"transparent":t.surface2),
-                      border:`1px solid ${color?color+"44":t.border}`,
-                      display:"flex",alignItems:"center",justifyContent:"center",
-                      opacity:isF?0.3:1,
-                    }}>
-                      <span style={{fontSize:"14px",fontWeight:color?"700":"400",color:color?"#fff":t.textMuted,textShadow:color?"0 1px 2px rgba(0,0,0,0.3)":"none"}}>{d}</span>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </>
-          )}
-
           {/* ── YEAR: monthly bars ── */}
           {period === "year" && (
             <>
@@ -1699,7 +1738,13 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
           {/* ── Activity mix ── */}
           {filteredAct.length > 0 && (
             <>
-              <Label t={t}>WHAT YOU DID <span style={{color:t.textMuted,fontWeight:"400",letterSpacing:"0",fontSize:"12px"}}>— tap to drill in</span></Label>
+              <button onClick={()=>setWhatYouDidOpen(o=>!o)} style={{
+                background:"none",border:"none",cursor:"pointer",padding:"0",marginBottom:"10px",
+                display:"flex",alignItems:"center",gap:"6px",width:"100%",
+              }}>
+                <Label t={t}><span style={{display:"flex",alignItems:"center",gap:"6px"}}>WHAT YOU DID <span style={{color:t.textMuted,fontSize:"12px"}}>{whatYouDidOpen?"▲":"▼"}</span></span></Label>
+              </button>
+              {whatYouDidOpen && (
               <Card t={t} style={{padding:"14px 16px",marginBottom:"14px"}}>
                 {filteredCounts.map(a=>{
                   const pct = a.value/filteredAct.length*100;
@@ -1725,6 +1770,7 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
                   );
                 })}
               </Card>
+              )}
             </>
           )}
 
@@ -1738,7 +1784,7 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
 }
 
 // ─── Supplements View ─────────────────────────────────────────────────────────
-function SupplementsView({ suppLogs, setSuppLogs, t }) {
+function SupplementsView({ suppLogs, setSuppLogs, t, period }) {
   const today = todayStr();
   const [vd, setVd] = useState(new Date());
   const [sel, setSel] = useState(null); // selected day number
@@ -1872,6 +1918,53 @@ function SupplementsView({ suppLogs, setSuppLogs, t }) {
       </Card>
 
       {/* Calendar */}
+      {period === "year" ? (
+        /* ── YEAR VIEW ── */
+        <div>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"14px"}}>
+            <button onClick={()=>setVd(new Date(yr-1,0,1))} style={{background:"none",border:"none",cursor:"pointer",color:t.textSub,fontSize:"16px",padding:"4px 8px"}}>‹</button>
+            <span style={{fontSize:"15px",fontWeight:"600",color:t.text}}>{yr}</span>
+            <button onClick={()=>setVd(new Date(yr+1,0,1))} disabled={yr>=new Date().getFullYear()} style={{background:"none",border:"none",cursor:yr<new Date().getFullYear()?"pointer":"default",color:yr<new Date().getFullYear()?t.textSub:t.border,fontSize:"16px",padding:"4px 8px"}}>›</button>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"10px"}}>
+            {MONTHS.map((mName,mi) => {
+              const mDim = new Date(yr,mi+1,0).getDate();
+              let total=0, suppDays=0, creatineDays=0;
+              for (let d=1;d<=mDim;d++) {
+                const dateStr = `${yr}-${String(mi+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+                if (dateStr > today) continue;
+                total++;
+                const entry = suppLogs[dateStr];
+                if (entry?.supplements) suppDays++;
+                if (entry?.creatine) creatineDays++;
+              }
+              const suppPct = total > 0 ? Math.round(suppDays/total*100) : 0;
+              const creatinePct = total > 0 ? Math.round(creatineDays/total*100) : 0;
+              return (
+                <Card t={t} key={mi} style={{padding:"8px",textAlign:"center"}}>
+                  <div style={{fontSize:"12px",fontWeight:"600",color:t.text,marginBottom:"6px"}}>{mName.slice(0,3)}</div>
+                  <div style={{display:"flex",gap:"3px",alignItems:"center",justifyContent:"center",marginBottom:"4px"}}>
+                    <span style={{fontSize:"10px"}}>💊</span>
+                    <div style={{flex:1,background:t.surface2,borderRadius:"3px",height:"4px",overflow:"hidden"}}>
+                      <div style={{height:"100%",width:suppPct+"%",background:SUPP_COLOR,borderRadius:"3px"}}/>
+                    </div>
+                    <span style={{fontSize:"10px",color:SUPP_COLOR,fontWeight:"600",minWidth:"26px"}}>{suppPct}%</span>
+                  </div>
+                  <div style={{display:"flex",gap:"3px",alignItems:"center",justifyContent:"center"}}>
+                    <span style={{fontSize:"10px"}}>⚡</span>
+                    <div style={{flex:1,background:t.surface2,borderRadius:"3px",height:"4px",overflow:"hidden"}}>
+                      <div style={{height:"100%",width:creatinePct+"%",background:CREATINE_COLOR,borderRadius:"3px"}}/>
+                    </div>
+                    <span style={{fontSize:"10px",color:CREATINE_COLOR,fontWeight:"600",minWidth:"26px"}}>{creatinePct}%</span>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        /* ── MONTH VIEW ── */
+        <>
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"14px"}}>
         <button onClick={()=>{setSel(null);setVd(new Date(yr,mo-1,1));}} style={{background:"none",border:"none",cursor:"pointer",color:t.textSub,fontSize:"16px",padding:"4px 8px"}}>‹</button>
         <span style={{fontSize:"15px",fontWeight:"600",color:t.text}}>{MONTHS[mo]} {yr}</span>
@@ -1906,7 +1999,7 @@ function SupplementsView({ suppLogs, setSuppLogs, t }) {
 
             return (
               <div key={d} onClick={()=>!isFuture && setSel(isSel ? null : d)} style={{
-                aspectRatio:"1", minHeight:"38px", borderRadius:"7px",
+                aspectRatio:"1", minHeight:"36px", borderRadius:"50%",
                 background: bgColor || (isFuture ? "transparent" : t.surface2),
                 border: isSel ? `2px solid ${t.text}` : isToday && !bgColor ? `2px solid ${t.accent}` : `1px solid ${bgColor ? bgColor+"44" : t.border}`,
                 display:"flex", alignItems:"center", justifyContent:"center",
@@ -1974,6 +2067,8 @@ function SupplementsView({ suppLogs, setSuppLogs, t }) {
           </div>
         </Card>
       )}
+      </>
+      )}
     </div>
   );
 }
@@ -1983,7 +2078,7 @@ export default function ActivityTracker() {
   const [dark,     setDark]     = useState(false);
   const [logs,     setLogs]     = useState([]);
   const [tree,     setTree]     = useState(DEFAULT_ACTIVITY_TREE);
-  const [view,     setView]     = useState("log");
+  const [view,     setView]     = useState("calendar");
   const [logMode,  setLogMode]  = useState("activity");
   const [selTop,   setSelTop]   = useState(null);  // selected parent activity id
   const [selSub,   setSelSub]   = useState(null);  // selected sub id
@@ -1999,6 +2094,11 @@ export default function ActivityTracker() {
   const [mtProgress, setMtProgressRaw] = useState({});
   const [showAllActivities, setShowAllActivities] = useState(false);
   const [suppLogs, setSuppLogsRaw] = useState({}); // { "2026-02-24": { supplements: true, creatine: false }, ... }
+  const [logPage, setLogPage] = useState(0); // 0 = activity, 1 = supplements
+  const [suppDate, setSuppDate] = useState(todayStr());
+  const [calPeriod, setCalPeriod] = useState("month"); // "month" or "year"
+  const logSwipeRef = useRef(null);
+  const logTouchStart = useRef(null);
 
   const t = tokens(dark);
 
@@ -2127,9 +2227,17 @@ export default function ActivityTracker() {
   const actLogs   = logs.filter(l=>!isRestId(l.activity));
   const restLogs  = logs.filter(l=>isRestId(l.activity));
   const totalMin  = actLogs.reduce((s,l)=>s+parseInt(l.duration||0),0);
+  
+  // Collect all active dates including mobility sessions from mtProgress
+  const allActiveDates = useMemo(() => {
+    const dates = new Set(actLogs.map(l=>l.date));
+    Object.values(mtProgress).forEach(v => { if (v?.done && v?.date) dates.add(v.date); });
+    return dates;
+  }, [actLogs, mtProgress]);
+
   const streak    = (()=>{
-    const ds=new Set(actLogs.map(l=>l.date)); let s=0; const c=new Date();
-    while(ds.has(toDateStr(c))){ s++; c.setDate(c.getDate()-1); } return s;
+    let s=0; const c=new Date();
+    while(allActiveDates.has(toDateStr(c))){ s++; c.setDate(c.getDate()-1); } return s;
   })();
 
   // For donut: MT day ids roll up to parent "Mobility Toolkit", others use their own id
@@ -2155,12 +2263,10 @@ export default function ActivityTracker() {
   const ouraToday = ouraData[todayStr()];
 
   const TABS = [
-    { id:"supps",    label:"Supps",    icon:"💊" },
-    { id:"mobility", label:"Mobility", icon:"🔁" },
-    { id:"calendar", label:"Calendar", icon:"▦"  },
     { id:"log",      label:"Log",      icon:"+" },
+    { id:"mobility", label:"Mobility", icon:"◆" },
+    { id:"calendar", label:"Calendar", icon:"▦", featured:true },
     { id:"manage",   label:"Manage",   icon:"✎"  },
-    { id:"stats",    label:"Stats",    icon:"↗"  },
     { id:"theme",    label:dark?"Light":"Dark", icon:dark?"☀️":"🌙" },
   ];
 
@@ -2232,19 +2338,55 @@ export default function ActivityTracker() {
         {/* ── LOG ── */}
         {view==="log"&&(
           <div>
-            {/* Mode toggle */}
-            <div style={{display:"flex",background:t.surface2,borderRadius:"9px",padding:"3px",marginBottom:"20px",border:`1px solid ${t.border}`}}>
-              {[["activity","🏃 Active Day"],["rest","🛌 Rest / Recovery"]].map(([m,lbl])=>(
-                <button key={m} onClick={()=>setLogMode(m)} style={{
-                  flex:1,background:logMode===m?t.surface:"transparent",
-                  color:logMode===m?t.text:t.textSub,
-                  border:logMode===m?`1px solid ${t.border}`:"none",
-                  padding:"9px 6px",borderRadius:"7px",cursor:"pointer",
-                  fontSize:"14px",fontFamily:"inherit",fontWeight:logMode===m?"600":"400",
-                  transition:"all 0.12s",
+            {/* Page indicator dots */}
+            <div style={{display:"flex",justifyContent:"center",gap:"8px",marginBottom:"14px"}}>
+              {["🏃 Activity","💊 Supplements"].map((lbl,i)=>(
+                <button key={i} onClick={()=>setLogPage(i)} style={{
+                  background: logPage===i ? t.accent : t.surface2,
+                  color: logPage===i ? "#fff" : t.textSub,
+                  border: `1px solid ${logPage===i ? t.accent : t.border}`,
+                  padding:"7px 16px",borderRadius:"20px",cursor:"pointer",
+                  fontSize:"13px",fontFamily:"inherit",fontWeight:logPage===i?"600":"400",
+                  transition:"all 0.15s",
                 }}>{lbl}</button>
               ))}
             </div>
+
+            {/* Swipeable container */}
+            <div
+              ref={logSwipeRef}
+              onTouchStart={e => { logTouchStart.current = e.touches[0].clientX; }}
+              onTouchEnd={e => {
+                if (logTouchStart.current === null) return;
+                const diff = logTouchStart.current - e.changedTouches[0].clientX;
+                if (Math.abs(diff) > 50) {
+                  if (diff > 0 && logPage === 0) setLogPage(1);
+                  if (diff < 0 && logPage === 1) setLogPage(0);
+                }
+                logTouchStart.current = null;
+              }}
+              style={{overflow:"hidden"}}
+            >
+              <div style={{
+                display:"flex", width:"200%",
+                transform:`translateX(${logPage * -50}%)`,
+                transition:"transform 0.3s ease",
+              }}>
+                {/* PAGE 0: Activity logging */}
+                <div style={{width:"50%",flexShrink:0,paddingRight:"10px"}}>
+                  {/* Mode toggle */}
+                  <div style={{display:"flex",background:t.surface2,borderRadius:"9px",padding:"3px",marginBottom:"20px",border:`1px solid ${t.border}`}}>
+                    {[["activity","🏃 Active Day"],["rest","🛌 Rest / Recovery"]].map(([m,lbl])=>(
+                      <button key={m} onClick={()=>setLogMode(m)} style={{
+                        flex:1,background:logMode===m?t.surface:"transparent",
+                        color:logMode===m?t.text:t.textSub,
+                        border:logMode===m?`1px solid ${t.border}`:"none",
+                        padding:"9px 6px",borderRadius:"7px",cursor:"pointer",
+                        fontSize:"14px",fontFamily:"inherit",fontWeight:logMode===m?"600":"400",
+                        transition:"all 0.12s",
+                      }}>{lbl}</button>
+                    ))}
+                  </div>
 
             {/* ── STEP 1: Date ── */}
             <Card t={t} style={{padding:"14px 16px",marginBottom:"12px"}}>
@@ -2456,9 +2598,6 @@ export default function ActivityTracker() {
               );
             })()}
 
-              );
-            })()}
-
             {/* Canvas confetti explosion */}
             <CanvasConfetti active={!!quote} />
 
@@ -2528,11 +2667,91 @@ export default function ActivityTracker() {
             }}>
               ≡ View Full History
             </button>
+                </div>
+
+                {/* PAGE 1: Supplements logging */}
+                <div style={{width:"50%",flexShrink:0,paddingLeft:"10px"}}>
+                  {/* Date picker - same as activity */}
+                  <Card t={t} style={{padding:"14px 16px",marginBottom:"12px"}}>
+                    <Label t={t}>WHEN</Label>
+                    <DatePicker value={suppDate} onChange={v=>setSuppDate(v)} t={t}/>
+                  </Card>
+
+                  <Card t={t} style={{padding:"16px",marginBottom:"14px"}}>
+                    <Label t={t}>SUPPLEMENTS</Label>
+                    <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
+                      {[
+                        { key: "supplements", label: "Supplements", icon: "💊", color: "#8b5cf6", checked: (suppLogs[suppDate]||{}).supplements },
+                        { key: "creatine",    label: "Creatine",    icon: "⚡", color: "#06b6d4", checked: (suppLogs[suppDate]||{}).creatine },
+                      ].map(item => (
+                        <button key={item.key} onClick={() => {
+                          const prev = suppLogs[suppDate] || { supplements: false, creatine: false };
+                          setSuppLogs({ ...suppLogs, [suppDate]: { ...prev, [item.key]: !prev[item.key] } });
+                        }} style={{
+                          display:"flex", alignItems:"center", gap:"14px",
+                          padding:"16px", borderRadius:"12px", cursor:"pointer",
+                          fontFamily:"inherit", transition:"all 0.15s",
+                          background: item.checked ? item.color+"18" : t.surface2,
+                          border: `1.5px solid ${item.checked ? item.color : t.border}`,
+                        }}>
+                          <div style={{
+                            width:"28px", height:"28px", borderRadius:"8px", flexShrink:0,
+                            background: item.checked ? item.color : t.surface2,
+                            border: `2px solid ${item.checked ? item.color : t.border}`,
+                            display:"flex", alignItems:"center", justifyContent:"center",
+                            fontSize:"14px", color:"#fff", transition:"all 0.15s",
+                          }}>
+                            {item.checked ? "✓" : ""}
+                          </div>
+                          <span style={{fontSize:"18px"}}>{item.icon}</span>
+                          <span style={{fontSize:"15px",fontWeight:"600",color: item.checked ? item.color : t.text}}>
+                            {item.label}
+                          </span>
+                          {item.checked && (
+                            <span style={{marginLeft:"auto",fontSize:"13px",color:item.color,fontWeight:"500"}}>Done ✓</span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </Card>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* ── CALENDAR ── */}
-        {view==="calendar"&&<CalendarView logs={logs} ouraData={ouraData} tree={tree} mtProgress={mtProgress} t={t}/>}
+        {/* ── HOME: Calendar + Stats + Supplements ── */}
+        {view==="calendar"&&(
+          <div>
+            {/* Period toggle at top */}
+            <div style={{display:"flex",background:t.surface2,borderRadius:"9px",padding:"3px",marginBottom:"16px",border:`1px solid ${t.border}`}}>
+              {[["month","Month"],["year","Year"]].map(([p,lbl])=>(
+                <button key={p} onClick={()=>setCalPeriod(p)} style={{
+                  flex:1,background:calPeriod===p?t.surface:"transparent",
+                  color:calPeriod===p?t.text:t.textSub,
+                  border:calPeriod===p?`1px solid ${t.border}`:"none",
+                  padding:"9px 6px",borderRadius:"7px",cursor:"pointer",
+                  fontSize:"14px",fontFamily:"inherit",fontWeight:calPeriod===p?"600":"400",
+                  transition:"all 0.12s",
+                }}>{lbl}</button>
+              ))}
+            </div>
+
+            {/* Activity Calendar */}
+            <CalendarView logs={logs} ouraData={ouraData} tree={tree} mtProgress={mtProgress} t={t} period={calPeriod}/>
+            
+            {/* Activity Stats */}
+            <div style={{marginTop:"20px"}}>
+              <StatsView logs={logs} actLogs={actLogs} restLogs={restLogs} tree={tree} ouraData={ouraData} hasOura={hasOura} totalMin={totalMin} streak={streak} activityCounts={activityCounts} mtProgress={mtProgress} t={t} forcePeriod={calPeriod}/>
+            </div>
+
+            {/* Supplements Calendar & Stats */}
+            <div style={{marginTop:"20px"}}>
+              <Label t={t}>SUPPLEMENTS</Label>
+              <SupplementsView suppLogs={suppLogs} setSuppLogs={setSuppLogs} t={t} period={calPeriod}/>
+            </div>
+          </div>
+        )}
 
         {/* ── HISTORY ── */}
         {view==="history"&&(
@@ -2565,7 +2784,7 @@ export default function ActivityTracker() {
         {view==="stats"&&(()=>{
           // ── Period filter state (inline with IIFE to keep clean) ──────────
           // We lift these into the parent via a mini component trick using useState hooks at top level
-          return <StatsView logs={logs} actLogs={actLogs} restLogs={restLogs} tree={tree} ouraData={ouraData} hasOura={hasOura} totalMin={totalMin} streak={streak} activityCounts={activityCounts} t={t}/>;
+          return <StatsView logs={logs} actLogs={actLogs} restLogs={restLogs} tree={tree} ouraData={ouraData} hasOura={hasOura} totalMin={totalMin} streak={streak} activityCounts={activityCounts} mtProgress={mtProgress} t={t}/>;
         })()}
 
         {/* ── MOBILITY ── */}
@@ -2594,18 +2813,25 @@ export default function ActivityTracker() {
         width:"100%",maxWidth:"390px",
         background: dark ? "#2c2c2e" : "#e5e5ea",
         borderTop: dark ? "1px solid #3a3a3c" : "1px solid #c7c7cc",
-        display:"grid",gridTemplateColumns:"repeat(7,1fr)",
+        display:"grid",gridTemplateColumns:"repeat(5,1fr)",
         paddingBottom:"18px",paddingTop:"8px",zIndex:100,
       }}>
-        {TABS.map(tab=>(
+        {TABS.map(tab=>{
+          const isFeatured = tab.featured;
+          const isActive = view===tab.id;
+          const color = isActive ? t.accent : dark ? "#8e8e93" : "#8e8e93";
+          return (
           <button key={tab.id} onClick={()=>tab.id==="theme"?toggleDark():setView(tab.id)} style={{
             background:"none",border:"none",cursor:"pointer",
-            display:"flex",flexDirection:"column",alignItems:"center",gap:"3px",padding:"5px 0",
+            display:"flex",flexDirection:"column",alignItems:"center",gap: isFeatured?"2px":"3px",padding:"5px 0",
+            transform: isFeatured ? "scale(1.2)" : "none",
+            marginTop: isFeatured ? "-4px" : "0",
           }}>
-            <span style={{fontSize:"16px",fontWeight:"700",color:view===tab.id?t.accent: dark ? "#8e8e93" : "#8e8e93",fontFamily:"monospace"}}>{tab.icon}</span>
-            <span style={{fontSize:"10px",letterSpacing:"0.3px",color:view===tab.id?t.accent: dark ? "#8e8e93" : "#8e8e93",fontWeight:view===tab.id?"700":"500"}}>{tab.label}</span>
+            <span style={{fontSize: isFeatured?"20px":"16px",fontWeight:"700",color,fontFamily:"monospace"}}>{tab.icon}</span>
+            <span style={{fontSize: isFeatured?"11px":"10px",letterSpacing:"0.3px",color,fontWeight:isActive?"700":"500"}}>{tab.label}</span>
           </button>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

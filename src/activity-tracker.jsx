@@ -162,44 +162,60 @@ function displayLabel(info) {
 // ─── Theme tokens ─────────────────────────────────────────────────────────────
 function tokens(dark) {
   return dark ? {
-    bg:       "#0c0c0e",
-    surface:  "#141416",
-    surface2: "#1c1c1f",
-    border:   "#242428",
-    border2:  "#2e2e33",
-    text:     "#f5f5f5",
-    textSub:  "#a1a1aa",
-    textMuted:"#6b6b76",
-    accent:   "#3b82f6",
-    pill:     "#1c1c1f",
-    pillBorder:"#2e2e33",
+    bg:       "#050507",
+    surface:  "rgba(255,255,255,0.035)",
+    surface2: "rgba(255,255,255,0.055)",
+    surfaceHover: "rgba(255,255,255,0.08)",
+    border:   "rgba(255,255,255,0.06)",
+    border2:  "rgba(255,255,255,0.1)",
+    text:     "#f0f0f5",
+    textSub:  "rgba(255,255,255,0.6)",
+    textMuted:"rgba(255,255,255,0.3)",
+    accent:   "#a78bfa",
+    accent2:  "#7c3aed",
+    accentGlow: "rgba(167,139,250,0.25)",
+    pill:     "rgba(255,255,255,0.05)",
+    pillBorder:"rgba(255,255,255,0.08)",
+    glow:     "rgba(167,139,250,0.12)",
+    success:  "#34d399",
+    danger:   "#f87171",
+    warn:     "#fbbf24",
+    cardShadow: "0 4px 24px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05)",
   } : {
-    bg:       "#fafafa",
-    surface:  "#ffffff",
-    surface2: "#f4f4f5",
-    border:   "#e4e4e7",
-    border2:  "#d4d4d8",
-    text:     "#09090b",
-    textSub:  "#71717a",
-    textMuted:"#a1a1aa",
-    accent:   "#2563eb",
-    pill:     "#f4f4f5",
-    pillBorder:"#e4e4e7",
+    bg:       "#f5f5f7",
+    surface:  "rgba(255,255,255,0.8)",
+    surface2: "rgba(0,0,0,0.03)",
+    surfaceHover: "rgba(0,0,0,0.06)",
+    border:   "rgba(0,0,0,0.06)",
+    border2:  "rgba(0,0,0,0.1)",
+    text:     "#1a1a2e",
+    textSub:  "rgba(0,0,0,0.55)",
+    textMuted:"rgba(0,0,0,0.3)",
+    accent:   "#7c3aed",
+    accent2:  "#6d28d9",
+    accentGlow: "rgba(124,58,237,0.15)",
+    pill:     "rgba(0,0,0,0.04)",
+    pillBorder:"rgba(0,0,0,0.08)",
+    glow:     "rgba(124,58,237,0.06)",
+    success:  "#059669",
+    danger:   "#dc2626",
+    warn:     "#d97706",
+    cardShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)",
   };
 }
 
 // ─── Tiny components ──────────────────────────────────────────────────────────
 function Label({ children, t }) {
-  return <div style={{fontSize:"12px",letterSpacing:"2px",color:t.textSub,marginBottom:"10px",fontWeight:"500"}}>{children}</div>;
+  return <div style={{fontSize:"11px",letterSpacing:"1.2px",color:t.textMuted,marginBottom:"10px",fontWeight:"600",textTransform:"uppercase"}}>{children}</div>;
 }
 
 function Input({ t, ...props }) {
   return (
     <input {...props} style={{
       width:"100%", background:t.surface2, border:`1px solid ${t.border}`,
-      color:t.text, padding:"11px 13px", borderRadius:"9px",
+      color:t.text, padding:"12px 14px", borderRadius:"12px",
       fontSize:"14px", fontFamily:"inherit", boxSizing:"border-box",
-      outline:"none",
+      outline:"none", transition:"border-color 0.2s",
       ...props.style,
     }}/>
   );
@@ -209,9 +225,9 @@ function Textarea({ t, ...props }) {
   return (
     <textarea {...props} style={{
       width:"100%", background:t.surface2, border:`1px solid ${t.border}`,
-      color:t.text, padding:"11px 13px", borderRadius:"9px",
+      color:t.text, padding:"12px 14px", borderRadius:"12px",
       fontSize:"14px", fontFamily:"inherit", boxSizing:"border-box",
-      resize:"none", outline:"none",
+      resize:"none", outline:"none", transition:"border-color 0.2s",
       ...props.style,
     }}/>
   );
@@ -220,21 +236,31 @@ function Textarea({ t, ...props }) {
 function Pill({ active, color, onClick, children, t }) {
   return (
     <button onClick={onClick} style={{
-      background: active ? (color+"18") : t.pill,
+      background: active ? (color+"12") : t.pill,
       color:      active ? color : t.textSub,
-      border:     `1px solid ${active ? color+"55" : t.pillBorder}`,
+      border:     `1px solid ${active ? color+"30" : t.pillBorder}`,
       padding:"10px 16px", borderRadius:"100px", cursor:"pointer",
       fontSize:"14px", fontWeight: active?"600":"400",
-      fontFamily:"inherit", transition:"all 0.12s",
+      fontFamily:"inherit", transition:"all 0.25s cubic-bezier(0.4,0,0.2,1)",
       display:"flex", alignItems:"center", gap:"5px",
       whiteSpace:"nowrap",
+      boxShadow: active ? `0 0 16px ${color}18, inset 0 0 12px ${color}08` : "none",
+      transform: active ? "scale(1.03)" : "scale(1)",
     }}>{children}</button>
   );
 }
 
-function Card({ t, children, style={} }) {
+function Card({ t, children, style={}, glow=false }) {
   return (
-    <div style={{background:t.surface, border:`1px solid ${t.border}`, borderRadius:"12px", ...style}}>
+    <div style={{
+      background:t.surface,
+      border:`1px solid ${t.border}`,
+      borderRadius:"20px",
+      backdropFilter:"blur(20px) saturate(180%)",
+      WebkitBackdropFilter:"blur(20px) saturate(180%)",
+      boxShadow: glow ? `0 0 30px ${t.accentGlow}, ${t.cardShadow}` : t.cardShadow,
+      ...style,
+    }}>
       {children}
     </div>
   );
@@ -412,13 +438,25 @@ function CalendarView({ logs, ouraData, tree, mtProgress, t, period }) {
   const isPast=d=>ds(d)<tStr, isToday=d=>ds(d)===tStr;
   const selLogs=sel?dl(sel):[], selOura=sel?od(sel):null;
   const selMT=sel?mtOnDate(ds(sel)):[];
+  const calTouch = useRef(null);
 
   return (
-    <div>
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"20px"}}>
-        <button onClick={()=>{setSel(null);setVd(new Date(yr,mo-1,1));}} style={{background:"none",border:"none",cursor:"pointer",color:t.textSub,fontSize:"12px",padding:"4px 8px"}}>‹</button>
-        <span style={{fontSize:"16px",fontWeight:"600",color:t.text}}>{MONTHS[mo]} {yr}</span>
-        <button onClick={()=>{setSel(null);setVd(new Date(yr,mo+1,1));}} disabled={!canNext} style={{background:"none",border:"none",cursor:canNext?"pointer":"default",color:canNext?t.textSub:t.border,fontSize:"12px",padding:"4px 8px"}}>›</button>
+    <div
+      onTouchStart={e => { calTouch.current = e.touches[0].clientX; }}
+      onTouchEnd={e => {
+        if (calTouch.current === null) return;
+        const diff = calTouch.current - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 60) {
+          if (diff > 0 && canNext) { setSel(null); setVd(new Date(yr,mo+1,1)); }
+          if (diff < 0) { setSel(null); setVd(new Date(yr,mo-1,1)); }
+        }
+        calTouch.current = null;
+      }}
+    >
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"16px"}}>
+        <button onClick={()=>{setSel(null);setVd(new Date(yr,mo-1,1));}} style={{background:"none",border:"none",cursor:"pointer",color:t.textSub,fontSize:"16px",padding:"4px 12px",fontWeight:"300"}}>‹</button>
+        <span style={{fontSize:"15px",fontWeight:"700",color:t.text,letterSpacing:"0.5px"}}>{MONTHS[mo]} {yr}</span>
+        <button onClick={()=>{setSel(null);setVd(new Date(yr,mo+1,1));}} disabled={!canNext} style={{background:"none",border:"none",cursor:canNext?"pointer":"default",color:canNext?t.textSub:t.border,fontSize:"16px",padding:"4px 12px",fontWeight:"300"}}>›</button>
       </div>
 
       <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"3px",marginBottom:"3px"}}>
@@ -472,11 +510,13 @@ function CalendarView({ logs, ouraData, tree, mtProgress, t, period }) {
           return (
             <div key={d} onClick={()=>setSel(isSel?null:d)} style={{
               aspectRatio:"1", minHeight:"36px", borderRadius:"50%",
-              background: multiColor ? "transparent" : fillColor ? fillColor : t.surface2,
-              border: isSel ? `2px solid ${t.text}` : todC && !fillColor ? `2px solid ${t.accent}` : `1px solid ${fillColor ? fillColor+"44" : t.border}`,
+              background: multiColor ? "transparent" : fillColor ? `linear-gradient(135deg, ${fillColor}, ${fillColor}dd)` : todC ? t.accentGlow : "transparent",
+              border: isSel ? `2px solid ${t.accent}` : todC && !fillColor ? `2px solid ${t.accent}` : fillColor ? "none" : `1px solid ${t.border}`,
               display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
-              cursor:"pointer", position:"relative", overflow:"hidden", transition:"all 0.1s",
-              opacity: missed ? 0.75 : 1,
+              cursor:"pointer", position:"relative", overflow:"hidden",
+              transition:"all 0.2s cubic-bezier(0.4,0,0.2,1)",
+              opacity: missed ? 0.6 : 1,
+              boxShadow: isSel ? `0 0 12px ${t.accentGlow}` : fillColor && !missed ? `0 2px 8px ${fillColor}33` : "none",
             }}>
               {/* Multi-color split background */}
               {multiColor && (
@@ -1802,6 +1842,7 @@ function SupplementsView({ suppLogs, setSuppLogs, t, period }) {
 
   // Calendar
   const yr = vd.getFullYear(), mo = vd.getMonth();
+  const suppCalTouch = useRef(null);
   const dim = new Date(yr, mo+1, 0).getDate();
   const fd = new Date(yr, mo, 1).getDay();
   const canNext = new Date(yr, mo+1, 1) <= new Date();
@@ -1964,11 +2005,22 @@ function SupplementsView({ suppLogs, setSuppLogs, t, period }) {
         </div>
       ) : (
         /* ── MONTH VIEW ── */
-        <>
+        <div
+          onTouchStart={e => { suppCalTouch.current = e.touches[0].clientX; }}
+          onTouchEnd={e => {
+            if (suppCalTouch.current === null) return;
+            const diff = suppCalTouch.current - e.changedTouches[0].clientX;
+            if (Math.abs(diff) > 60) {
+              if (diff > 0 && canNext) { setSel(null); setVd(new Date(yr,mo+1,1)); }
+              if (diff < 0) { setSel(null); setVd(new Date(yr,mo-1,1)); }
+            }
+            suppCalTouch.current = null;
+          }}
+        >
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"14px"}}>
-        <button onClick={()=>{setSel(null);setVd(new Date(yr,mo-1,1));}} style={{background:"none",border:"none",cursor:"pointer",color:t.textSub,fontSize:"16px",padding:"4px 8px"}}>‹</button>
-        <span style={{fontSize:"15px",fontWeight:"600",color:t.text}}>{MONTHS[mo]} {yr}</span>
-        <button onClick={()=>{setSel(null);setVd(new Date(yr,mo+1,1));}} disabled={!canNext} style={{background:"none",border:"none",cursor:canNext?"pointer":"default",color:canNext?t.textSub:t.border,fontSize:"16px",padding:"4px 8px"}}>›</button>
+        <button onClick={()=>{setSel(null);setVd(new Date(yr,mo-1,1));}} style={{background:"none",border:"none",cursor:"pointer",color:t.textSub,fontSize:"16px",padding:"4px 12px",fontWeight:"300"}}>‹</button>
+        <span style={{fontSize:"15px",fontWeight:"700",color:t.text,letterSpacing:"0.5px"}}>{MONTHS[mo]} {yr}</span>
+        <button onClick={()=>{setSel(null);setVd(new Date(yr,mo+1,1));}} disabled={!canNext} style={{background:"none",border:"none",cursor:canNext?"pointer":"default",color:canNext?t.textSub:t.border,fontSize:"16px",padding:"4px 12px",fontWeight:"300"}}>›</button>
       </div>
 
       <Card t={t} style={{padding:"12px 14px",marginBottom:"14px"}}>
@@ -2000,12 +2052,13 @@ function SupplementsView({ suppLogs, setSuppLogs, t, period }) {
             return (
               <div key={d} onClick={()=>!isFuture && setSel(isSel ? null : d)} style={{
                 aspectRatio:"1", minHeight:"36px", borderRadius:"50%",
-                background: bgColor || (isFuture ? "transparent" : t.surface2),
-                border: isSel ? `2px solid ${t.text}` : isToday && !bgColor ? `2px solid ${t.accent}` : `1px solid ${bgColor ? bgColor+"44" : t.border}`,
+                background: bgColor ? `linear-gradient(135deg, ${bgColor}, ${bgColor}dd)` : isToday ? t.accentGlow : (isFuture ? "transparent" : "transparent"),
+                border: isSel ? `2px solid ${t.accent}` : isToday && !bgColor ? `2px solid ${t.accent}` : bgColor ? "none" : `1px solid ${t.border}`,
                 display:"flex", alignItems:"center", justifyContent:"center",
                 cursor: isFuture ? "default" : "pointer",
-                opacity: isFuture ? 0.3 : missed ? 0.65 : 1,
-                transition:"all 0.1s",
+                opacity: isFuture ? 0.2 : missed ? 0.5 : 1,
+                transition:"all 0.2s cubic-bezier(0.4,0,0.2,1)",
+                boxShadow: bgColor && !missed ? `0 2px 8px ${bgColor}33` : "none",
               }}>
                 <span style={{
                   fontSize:"12px", fontWeight: bgColor || isToday ? "700" : "400",
@@ -2067,7 +2120,7 @@ function SupplementsView({ suppLogs, setSuppLogs, t, period }) {
           </div>
         </Card>
       )}
-      </>
+      </div>
       )}
     </div>
   );
@@ -2272,16 +2325,21 @@ export default function ActivityTracker() {
 
   return (
     <div style={{ minHeight:"100vh", maxWidth:"390px", margin:"0 auto",
-      background:t.bg, color:t.text,
-      fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',sans-serif",
+      background: dark ? "#050507" : "#f5f5f7",
+      color:t.text,
+      fontFamily:"'SF Pro Display',-apple-system,'Helvetica Neue',sans-serif",
       display:"flex", flexDirection:"column", position:"relative",
+      overflow:"hidden",
     }}>
+      {/* Ambient glow orbs */}
+      <div style={{position:"fixed",top:"-120px",right:"-80px",width:"300px",height:"300px",borderRadius:"50%",background:dark?"rgba(124,58,237,0.08)":"rgba(124,58,237,0.04)",filter:"blur(80px)",pointerEvents:"none",zIndex:0}}/>
+      <div style={{position:"fixed",bottom:"100px",left:"-100px",width:"250px",height:"250px",borderRadius:"50%",background:dark?"rgba(52,211,153,0.05)":"rgba(52,211,153,0.03)",filter:"blur(80px)",pointerEvents:"none",zIndex:0}}/>
       {/* Dynamic theme color + PWA icon setup */}
       {useEffect(()=>{
         const meta = document.querySelector('meta[name="theme-color"]') || (() => {
           const m = document.createElement('meta'); m.name='theme-color'; document.head.appendChild(m); return m;
         })();
-        meta.content = dark ? '#0f0f14' : '#ffffff';
+        meta.content = dark ? '#050507' : '#f5f5f7';
         const statusMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
         if (statusMeta) statusMeta.content = dark ? 'black-translucent' : 'default';
 
@@ -2333,21 +2391,23 @@ export default function ActivityTracker() {
         }
       }, [dark])}
       {/* Content */}
-      <div style={{flex:1,overflowY:"auto",padding:"12px 20px 96px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"12px 20px 96px",position:"relative",zIndex:1}}>
 
         {/* ── LOG ── */}
         {view==="log"&&(
           <div>
-            {/* Page indicator dots */}
-            <div style={{display:"flex",justifyContent:"center",gap:"8px",marginBottom:"14px"}}>
+            {/* Page indicator */}
+            <div style={{display:"flex",justifyContent:"center",gap:"8px",marginBottom:"18px"}}>
               {["🏃 Activity","💊 Supplements"].map((lbl,i)=>(
                 <button key={i} onClick={()=>setLogPage(i)} style={{
-                  background: logPage===i ? t.accent : t.surface2,
-                  color: logPage===i ? "#fff" : t.textSub,
-                  border: `1px solid ${logPage===i ? t.accent : t.border}`,
-                  padding:"7px 16px",borderRadius:"20px",cursor:"pointer",
-                  fontSize:"13px",fontFamily:"inherit",fontWeight:logPage===i?"600":"400",
-                  transition:"all 0.15s",
+                  background: logPage===i ? `linear-gradient(135deg, ${t.accent}, ${t.accent2})` : t.surface,
+                  color: logPage===i ? "#fff" : t.textMuted,
+                  border: `1px solid ${logPage===i ? "transparent" : t.border}`,
+                  padding:"9px 20px",borderRadius:"100px",cursor:"pointer",
+                  fontSize:"13px",fontFamily:"inherit",fontWeight:"600",
+                  transition:"all 0.3s cubic-bezier(0.4,0,0.2,1)",
+                  boxShadow: logPage===i ? `0 4px 16px ${t.accentGlow}` : t.cardShadow,
+                  letterSpacing:"0.2px",
                 }}>{lbl}</button>
               ))}
             </div>
@@ -2375,15 +2435,17 @@ export default function ActivityTracker() {
                 {/* PAGE 0: Activity logging */}
                 <div style={{width:"50%",flexShrink:0,paddingRight:"10px"}}>
                   {/* Mode toggle */}
-                  <div style={{display:"flex",background:t.surface2,borderRadius:"9px",padding:"3px",marginBottom:"20px",border:`1px solid ${t.border}`}}>
+                  <div style={{display:"flex",background:t.surface,borderRadius:"14px",padding:"3px",marginBottom:"20px",border:`1px solid ${t.border}`,boxShadow:t.cardShadow}}>
                     {[["activity","🏃 Active Day"],["rest","🛌 Rest / Recovery"]].map(([m,lbl])=>(
                       <button key={m} onClick={()=>setLogMode(m)} style={{
-                        flex:1,background:logMode===m?t.surface:"transparent",
-                        color:logMode===m?t.text:t.textSub,
-                        border:logMode===m?`1px solid ${t.border}`:"none",
-                        padding:"9px 6px",borderRadius:"7px",cursor:"pointer",
-                        fontSize:"14px",fontFamily:"inherit",fontWeight:logMode===m?"600":"400",
-                        transition:"all 0.12s",
+                        flex:1,
+                        background:logMode===m?`linear-gradient(135deg, ${t.accent}, ${t.accent2})`:"transparent",
+                        color:logMode===m?"#fff":t.textMuted,
+                        border:"none",
+                        padding:"10px 6px",borderRadius:"11px",cursor:"pointer",
+                        fontSize:"13px",fontFamily:"inherit",fontWeight:"600",
+                        transition:"all 0.3s cubic-bezier(0.4,0,0.2,1)",
+                        boxShadow: logMode===m ? `0 4px 12px ${t.accentGlow}` : "none",
                       }}>{lbl}</button>
                     ))}
                   </div>
@@ -2585,13 +2647,15 @@ export default function ActivityTracker() {
               return (
                 <button onClick={handleSubmit} disabled={!ready} style={{
                   width:"100%", padding:"16px",
-                  background: ready ? color : t.surface2,
+                  background: ready ? `linear-gradient(135deg, ${color}, ${color}cc)` : t.surface2,
                   color: ready ? "#fff" : t.textMuted,
-                  border: `1px solid ${ready ? color : t.border}`,
-                  borderRadius:"12px", cursor: ready ? "pointer" : "default",
+                  border: "none",
+                  borderRadius:"14px", cursor: ready ? "pointer" : "default",
                   fontSize:"14px", fontFamily:"inherit", fontWeight:"700",
-                  transition:"all 0.15s", marginBottom:"14px",
-                  opacity: ready ? 1 : 0.7,
+                  transition:"all 0.25s cubic-bezier(0.4,0,0.2,1)", marginBottom:"14px",
+                  opacity: ready ? 1 : 0.5,
+                  boxShadow: ready ? `0 4px 20px ${color}44` : "none",
+                  letterSpacing:"0.3px",
                 }}>
                   {saved ? "✓ Saved!" : label}
                 </button>
@@ -2724,15 +2788,18 @@ export default function ActivityTracker() {
         {view==="calendar"&&(
           <div>
             {/* Period toggle at top */}
-            <div style={{display:"flex",background:t.surface2,borderRadius:"9px",padding:"3px",marginBottom:"16px",border:`1px solid ${t.border}`}}>
+            <div style={{display:"flex",background:t.surface,borderRadius:"14px",padding:"3px",marginBottom:"20px",border:`1px solid ${t.border}`,boxShadow:t.cardShadow}}>
               {[["month","Month"],["year","Year"]].map(([p,lbl])=>(
                 <button key={p} onClick={()=>setCalPeriod(p)} style={{
-                  flex:1,background:calPeriod===p?t.surface:"transparent",
-                  color:calPeriod===p?t.text:t.textSub,
-                  border:calPeriod===p?`1px solid ${t.border}`:"none",
-                  padding:"9px 6px",borderRadius:"7px",cursor:"pointer",
-                  fontSize:"14px",fontFamily:"inherit",fontWeight:calPeriod===p?"600":"400",
-                  transition:"all 0.12s",
+                  flex:1,
+                  background:calPeriod===p ? `linear-gradient(135deg, ${t.accent}, ${t.accent2})` : "transparent",
+                  color:calPeriod===p ? "#fff" : t.textMuted,
+                  border:"none",
+                  padding:"11px 6px",borderRadius:"11px",cursor:"pointer",
+                  fontSize:"13px",fontFamily:"inherit",fontWeight:"600",
+                  letterSpacing:"0.3px",
+                  transition:"all 0.3s cubic-bezier(0.4,0,0.2,1)",
+                  boxShadow: calPeriod===p ? `0 4px 12px ${t.accentGlow}` : "none",
                 }}>{lbl}</button>
               ))}
             </div>
@@ -2811,24 +2878,35 @@ export default function ActivityTracker() {
       <div style={{
         position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",
         width:"100%",maxWidth:"390px",
-        background: dark ? "#2c2c2e" : "#e5e5ea",
-        borderTop: dark ? "1px solid #3a3a3c" : "1px solid #c7c7cc",
+        background: dark ? "rgba(5,5,7,0.92)" : "rgba(245,245,247,0.92)",
+        backdropFilter:"blur(24px) saturate(180%)", WebkitBackdropFilter:"blur(24px) saturate(180%)",
+        borderTop: `1px solid ${t.border}`,
         display:"grid",gridTemplateColumns:"repeat(5,1fr)",
-        paddingBottom:"18px",paddingTop:"8px",zIndex:100,
+        paddingBottom:"20px",paddingTop:"10px",zIndex:100,
       }}>
         {TABS.map(tab=>{
           const isFeatured = tab.featured;
           const isActive = view===tab.id;
-          const color = isActive ? t.accent : dark ? "#8e8e93" : "#8e8e93";
+          const color = isActive ? t.accent : t.textMuted;
           return (
           <button key={tab.id} onClick={()=>tab.id==="theme"?toggleDark():setView(tab.id)} style={{
             background:"none",border:"none",cursor:"pointer",
-            display:"flex",flexDirection:"column",alignItems:"center",gap: isFeatured?"2px":"3px",padding:"5px 0",
-            transform: isFeatured ? "scale(1.2)" : "none",
-            marginTop: isFeatured ? "-4px" : "0",
+            display:"flex",flexDirection:"column",alignItems:"center",gap:"2px",padding:"4px 0",
+            transform: isFeatured ? "scale(1.15)" : "none",
+            marginTop: isFeatured ? "-6px" : "0",
+            transition:"all 0.25s cubic-bezier(0.4,0,0.2,1)",
           }}>
-            <span style={{fontSize: isFeatured?"20px":"16px",fontWeight:"700",color,fontFamily:"monospace"}}>{tab.icon}</span>
-            <span style={{fontSize: isFeatured?"11px":"10px",letterSpacing:"0.3px",color,fontWeight:isActive?"700":"500"}}>{tab.label}</span>
+            <div style={{
+              width: isFeatured?"36px":"28px", height: isFeatured?"36px":"28px",
+              borderRadius:"10px",
+              background: isActive && isFeatured ? `linear-gradient(135deg, ${t.accent}, ${t.accent2})` : isActive ? t.accentGlow : "transparent",
+              display:"flex",alignItems:"center",justifyContent:"center",
+              transition:"all 0.25s",
+              boxShadow: isActive && isFeatured ? `0 2px 12px ${t.accentGlow}` : "none",
+            }}>
+              <span style={{fontSize: isFeatured?"17px":"15px",fontWeight:"700",color: isActive&&isFeatured?"#fff":color,fontFamily:"monospace"}}>{tab.icon}</span>
+            </div>
+            <span style={{fontSize:"9px",letterSpacing:"0.4px",color,fontWeight:isActive?"700":"500",transition:"color 0.2s"}}>{tab.label}</span>
           </button>
           );
         })}

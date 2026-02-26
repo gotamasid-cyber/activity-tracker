@@ -180,27 +180,69 @@ function tokens(dark) {
     success:  "#34d399",
     danger:   "#f87171",
     warn:     "#fbbf24",
+    ringTrack: "rgba(255,255,255,0.06)",
+    ringGlow:  true,
     cardShadow: "0 4px 24px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05)",
+    calActive: "rgba(167,139,250,0.15)",
+    calActiveBorder: "rgba(167,139,250,0.3)",
+    calActiveText: "#a78bfa",
+    calRest: "rgba(251,191,36,0.12)",
+    calRestBorder: "rgba(251,191,36,0.25)",
+    calRestText: "#fbbf24",
+    calMiss: "rgba(248,113,113,0.12)",
+    calMissBorder: "rgba(248,113,113,0.25)",
+    calMissText: "#f87171",
+    calEmpty: "rgba(255,255,255,0.03)",
+    calEmptyText: "rgba(255,255,255,0.2)",
+    calToday: "#a78bfa",
+    calTodayGlow: "0 0 12px rgba(167,139,250,0.35)",
+    suppColor: "#a78bfa",
+    creatineColor: "#22d3ee",
+    orbA: "rgba(124,58,237,0.08)",
+    orbB: "rgba(52,211,153,0.05)",
+    tabBg: "rgba(5,5,7,0.92)",
+    headerGrad: "radial-gradient(ellipse at 50% 0%, rgba(167,139,250,0.06) 0%, transparent 60%)",
   } : {
-    bg:       "#f5f5f7",
-    surface:  "rgba(255,255,255,0.8)",
-    surface2: "rgba(0,0,0,0.03)",
-    surfaceHover: "rgba(0,0,0,0.06)",
+    bg:       "#f8f8fc",
+    surface:  "rgba(255,255,255,0.85)",
+    surface2: "rgba(0,0,0,0.025)",
+    surfaceHover: "rgba(0,0,0,0.05)",
     border:   "rgba(0,0,0,0.06)",
     border2:  "rgba(0,0,0,0.1)",
     text:     "#1a1a2e",
     textSub:  "rgba(0,0,0,0.55)",
-    textMuted:"rgba(0,0,0,0.3)",
+    textMuted:"rgba(0,0,0,0.28)",
     accent:   "#7c3aed",
     accent2:  "#6d28d9",
-    accentGlow: "rgba(124,58,237,0.15)",
-    pill:     "rgba(0,0,0,0.04)",
-    pillBorder:"rgba(0,0,0,0.08)",
-    glow:     "rgba(124,58,237,0.06)",
+    accentGlow: "rgba(124,58,237,0.18)",
+    pill:     "rgba(0,0,0,0.035)",
+    pillBorder:"rgba(0,0,0,0.07)",
+    glow:     "rgba(124,58,237,0.08)",
     success:  "#059669",
     danger:   "#dc2626",
     warn:     "#d97706",
-    cardShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)",
+    ringTrack: "rgba(0,0,0,0.06)",
+    ringGlow:  false,
+    cardShadow: "0 1px 4px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.03), 0 0 0 1px rgba(0,0,0,0.03)",
+    calActive: "rgba(124,58,237,0.1)",
+    calActiveBorder: "rgba(124,58,237,0.2)",
+    calActiveText: "#7c3aed",
+    calRest: "rgba(217,119,6,0.1)",
+    calRestBorder: "rgba(217,119,6,0.2)",
+    calRestText: "#d97706",
+    calMiss: "rgba(220,38,38,0.08)",
+    calMissBorder: "rgba(220,38,38,0.15)",
+    calMissText: "#dc2626",
+    calEmpty: "rgba(0,0,0,0.02)",
+    calEmptyText: "rgba(0,0,0,0.22)",
+    calToday: "#7c3aed",
+    calTodayGlow: "0 0 10px rgba(124,58,237,0.2)",
+    suppColor: "#7c3aed",
+    creatineColor: "#0891b2",
+    orbA: "rgba(124,58,237,0.05)",
+    orbB: "rgba(5,150,105,0.04)",
+    tabBg: "rgba(248,248,252,0.92)",
+    headerGrad: "radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.04) 0%, transparent 60%)",
   };
 }
 
@@ -383,7 +425,7 @@ function ScoreRing({ score, maxScore, label, icon, color, secondaryScore, second
           )}
         </defs>
         {/* Background track */}
-        <circle cx={cx} cy={cy} r={r} fill="none" stroke={t.surface2} strokeWidth="8" opacity="0.5"/>
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke={t.ringTrack} strokeWidth="8" opacity="0.8"/>
         {/* Progress arc */}
         <circle cx={cx} cy={cy} r={r} fill="none" stroke={`url(#${gradId})`} strokeWidth="8" strokeLinecap="round"
           strokeDasharray={`${strokeDash} ${circumference}`}
@@ -393,7 +435,7 @@ function ScoreRing({ score, maxScore, label, icon, color, secondaryScore, second
         {/* Secondary ring */}
         {secondaryScore !== undefined && (
           <>
-            <circle cx={cx} cy={cy} r={r2} fill="none" stroke={t.surface2} strokeWidth="6" opacity="0.3"/>
+            <circle cx={cx} cy={cy} r={r2} fill="none" stroke={t.ringTrack} strokeWidth="6" opacity="0.5"/>
             <circle cx={cx} cy={cy} r={r2} fill="none" stroke={`url(#${gradId+"2"})`} strokeWidth="6" strokeLinecap="round"
               strokeDasharray={`${strokeDash2} ${circumference2}`}
               transform={`rotate(-90 ${cx} ${cy})`}
@@ -422,7 +464,7 @@ function CalendarView({ logs, ouraData, tree, mtProgress, t, period }) {
   const dl=d=>logs.filter(l=>l.date===ds(d));
   const od=d=>ouraData[ds(d)];
   const canNext=new Date(yr,mo+1,1)<=new Date();
-  const canNextYr=yr<new Date().getFullYear();
+  const canNextYr = yr < new Date().getFullYear();
 
   // Find all MT sessions completed on a given date string
   const mtOnDate = dateStr => {
@@ -598,15 +640,15 @@ function CalendarView({ logs, ouraData, tree, mtProgress, t, period }) {
       </div>
 
       {/* Legend */}
-      <div style={{display:"flex",gap:"10px",marginTop:"12px",flexWrap:"wrap"}}>
+      <div style={{display:"flex",gap:"10px",marginTop:"12px",flexWrap:"wrap",justifyContent:"center"}}>
         {[
-          ["#2563eb","Active"],
-          ["#ef4444","Missed"],
-          ["#eab308","Rest/Recovery"],
-          [t.surface2,"No data"],
+          [t.accent,"Active"],
+          [t.danger,"Missed"],
+          [t.warn,"Rest"],
+          [t.ringTrack,"No data"],
         ].map(([bg,lbl])=>(
-          <div key={lbl} style={{display:"flex",alignItems:"center",gap:"5px",fontSize:"12px",color:t.textSub}}>
-            <div style={{width:"10px",height:"10px",borderRadius:"3px",background:bg,border:`1px solid ${bg==="transparent"||bg===t.surface2?t.border:bg+"44"}`}}/>
+          <div key={lbl} style={{display:"flex",alignItems:"center",gap:"5px",fontSize:"11px",color:t.textSub}}>
+            <div style={{width:"8px",height:"8px",borderRadius:"50%",background:bg,boxShadow:bg!==t.ringTrack?`0 0 6px ${bg}40`:"none"}}/>
             {lbl}
           </div>
         ))}
@@ -1889,8 +1931,8 @@ function SupplementsView({ suppLogs, setSuppLogs, t, period }) {
   const [vd, setVd] = useState(new Date());
   const [sel, setSel] = useState(null); // selected day number
 
-  const SUPP_COLOR = "#8b5cf6";
-  const CREATINE_COLOR = "#06b6d4";
+  const SUPP_COLOR = t.suppColor;
+  const CREATINE_COLOR = t.creatineColor;
 
   // Toggle a supplement for a given date
   function toggle(date, key) {
@@ -1906,6 +1948,7 @@ function SupplementsView({ suppLogs, setSuppLogs, t, period }) {
   const dim = new Date(yr, mo+1, 0).getDate();
   const fd = new Date(yr, mo, 1).getDay();
   const canNext = new Date(yr, mo+1, 1) <= new Date();
+  const canNextYrSupp = yr < new Date().getFullYear();
   const ds = d => `${yr}-${String(mo+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
 
   // Month stats
@@ -2024,7 +2067,7 @@ function SupplementsView({ suppLogs, setSuppLogs, t, period }) {
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"14px"}}>
             <button onClick={()=>setVd(new Date(yr-1,0,1))} style={{background:"none",border:"none",cursor:"pointer",color:t.textSub,fontSize:"16px",padding:"4px 8px"}}>‹</button>
             <span style={{fontSize:"15px",fontWeight:"600",color:t.text}}>{yr}</span>
-            <button onClick={()=>setVd(new Date(yr+1,0,1))} disabled={yr>=new Date().getFullYear()} style={{background:"none",border:"none",cursor:yr<new Date().getFullYear()?"pointer":"default",color:yr<new Date().getFullYear()?t.textSub:t.border,fontSize:"16px",padding:"4px 8px"}}>›</button>
+            <button onClick={()=>setVd(new Date(yr+1,0,1))} disabled={!canNextYrSupp} style={{background:"none",border:"none",cursor:canNextYrSupp?"pointer":"default",color:canNextYrSupp?t.textSub:t.border,fontSize:"16px",padding:"4px 8px"}}>›</button>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"10px"}}>
             {MONTHS.map((mName,mi) => {
@@ -2396,15 +2439,16 @@ export default function ActivityTracker() {
 
   return (
     <div style={{ minHeight:"100vh", maxWidth:"390px", margin:"0 auto",
-      background: dark ? "#050507" : "#f5f5f7",
+      background: t.bg,
+      backgroundImage: t.headerGrad,
       color:t.text,
       fontFamily:"'SF Pro Display',-apple-system,'Helvetica Neue',sans-serif",
       display:"flex", flexDirection:"column", position:"relative",
       overflow:"hidden",
     }}>
       {/* Ambient glow orbs */}
-      <div style={{position:"fixed",top:"-120px",right:"-80px",width:"300px",height:"300px",borderRadius:"50%",background:dark?"rgba(124,58,237,0.08)":"rgba(124,58,237,0.04)",filter:"blur(80px)",pointerEvents:"none",zIndex:0}}/>
-      <div style={{position:"fixed",bottom:"100px",left:"-100px",width:"250px",height:"250px",borderRadius:"50%",background:dark?"rgba(52,211,153,0.05)":"rgba(52,211,153,0.03)",filter:"blur(80px)",pointerEvents:"none",zIndex:0}}/>
+      <div style={{position:"fixed",top:"-120px",right:"-80px",width:"300px",height:"300px",borderRadius:"50%",background:t.orbA,filter:"blur(80px)",pointerEvents:"none",zIndex:0}}/>
+      <div style={{position:"fixed",bottom:"100px",left:"-100px",width:"250px",height:"250px",borderRadius:"50%",background:t.orbB,filter:"blur(80px)",pointerEvents:"none",zIndex:0}}/>
       {/* Content */}
       <div style={{flex:1,overflowY:"auto",padding:"12px 20px 96px",position:"relative",zIndex:1}}>
 
@@ -2760,8 +2804,8 @@ export default function ActivityTracker() {
                     <Label t={t}>SUPPLEMENTS</Label>
                     <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
                       {[
-                        { key: "supplements", label: "Supplements", icon: "💊", color: "#8b5cf6", checked: (suppLogs[suppDate]||{}).supplements },
-                        { key: "creatine",    label: "Creatine",    icon: "⚡", color: "#06b6d4", checked: (suppLogs[suppDate]||{}).creatine },
+                        { key: "supplements", label: "Supplements", icon: "💊", color: t.suppColor, checked: (suppLogs[suppDate]||{}).supplements },
+                        { key: "creatine",    label: "Creatine",    icon: "⚡", color: t.creatineColor, checked: (suppLogs[suppDate]||{}).creatine },
                       ].map(item => (
                         <button key={item.key} onClick={() => {
                           const prev = suppLogs[suppDate] || { supplements: false, creatine: false };
@@ -2945,7 +2989,7 @@ export default function ActivityTracker() {
       <div style={{
         position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",
         width:"100%",maxWidth:"390px",
-        background: dark ? "rgba(5,5,7,0.92)" : "rgba(245,245,247,0.92)",
+        background: t.tabBg,
         backdropFilter:"blur(24px) saturate(180%)", WebkitBackdropFilter:"blur(24px) saturate(180%)",
         borderTop: `1px solid ${t.border}`,
         display:"grid",gridTemplateColumns:"repeat(5,1fr)",

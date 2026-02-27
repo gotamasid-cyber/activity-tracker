@@ -418,7 +418,7 @@ function OuraBadge({ data, t }) {
 }
 
 // ─── Oura-style Score Ring ───────────────────────────────────────────────────
-function ScoreRing({ score, maxScore, label, icon, color, secondaryScore, secondaryLabel, secondaryColor, size=160, t }) {
+function ScoreRing({ score, maxScore, label, icon, color, secondaryScore, secondaryLabel, secondaryColor, size=160, t, goldNumber=false }) {
   const [animated, setAnimated] = useState(false);
   useEffect(() => {
     const id = requestAnimationFrame(() => setAnimated(true));
@@ -435,6 +435,7 @@ function ScoreRing({ score, maxScore, label, icon, color, secondaryScore, second
   const strokeDash = animated ? circumference * pct : 0;
   const strokeDash2 = animated ? circumference2 * pct2 : 0;
   const gradId = `ring_${label}_${color}`.replace(/[^a-zA-Z0-9]/g,'');
+  const goldGradId = gradId + "_gold";
 
   return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",position:"relative"}}>
@@ -448,6 +449,14 @@ function ScoreRing({ score, maxScore, label, icon, color, secondaryScore, second
             <linearGradient id={gradId+"2"} x1="0" y1="0" x2="1" y2="1">
               <stop offset="0%" stopColor={secondaryColor} stopOpacity="1"/>
               <stop offset="100%" stopColor={secondaryColor} stopOpacity="0.5"/>
+            </linearGradient>
+          )}
+          {goldNumber && (
+            <linearGradient id={goldGradId} x1="0" y1="0" x2="1" y2="1" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#fde68a"><animate attributeName="stop-color" values="#fde68a;#f59e0b;#fbbf24;#fde68a" dur="3s" repeatCount="indefinite"/></stop>
+              <stop offset="35%" stopColor="#f59e0b"><animate attributeName="stop-color" values="#f59e0b;#fbbf24;#fde68a;#f59e0b" dur="3s" repeatCount="indefinite"/></stop>
+              <stop offset="65%" stopColor="#fbbf24"><animate attributeName="stop-color" values="#fbbf24;#fde68a;#f59e0b;#fbbf24" dur="3s" repeatCount="indefinite"/></stop>
+              <stop offset="100%" stopColor="#d97706"><animate attributeName="stop-color" values="#d97706;#fde68a;#d97706;#fbbf24" dur="3s" repeatCount="indefinite"/></stop>
             </linearGradient>
           )}
         </defs>
@@ -471,8 +480,11 @@ function ScoreRing({ score, maxScore, label, icon, color, secondaryScore, second
           </>
         )}
         {/* Center content */}
-        <text x={cx} y={cy-6} textAnchor="middle" fill={t.text} fontSize="28" fontWeight="800" fontFamily="'SF Pro Display',-apple-system,sans-serif">{score}</text>
-        <text x={cx} y={cy+14} textAnchor="middle" fill={t.textSub} fontSize="10" fontWeight="500" letterSpacing="1.5">{label}</text>
+        <text x={cx} y={cy-6} textAnchor="middle" fill={goldNumber ? `url(#${goldGradId})` : t.text} fontSize="28" fontWeight="800" fontFamily="'SF Pro Display',-apple-system,sans-serif"
+          style={goldNumber ? {filter:"drop-shadow(0 0 6px rgba(251,191,36,0.4))"} : {}}>
+          {score}
+        </text>
+        <text x={cx} y={cy+14} textAnchor="middle" fill={goldNumber ? "#fbbf24" : t.textSub} fontSize="10" fontWeight="500" letterSpacing="1.5">{label}</text>
       </svg>
     </div>
   );
@@ -1503,127 +1515,88 @@ function DatePicker({ value, onChange, t }) {
 }
 
 
-function CanvasConfetti({ active, onDone }) {
-  const canvasRef = useRef(null);
-  const rafRef    = useRef(null);
+function PowerGlow({ active, color = "#a78bfa" }) {
+  const [phase, setPhase] = useState(0); // 0=idle, 1=burst, 2=pulse, 3=fade
 
   useEffect(() => {
-    if (!active) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    canvas.width  = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const COLORS = [
-      "#f43f5e","#fb923c","#facc15","#4ade80",
-      "#34d399","#60a5fa","#a78bfa","#f472b6",
-      "#fff","#fde68a","#6ee7b7","#93c5fd",
-    ];
-    const SHAPES = ["rect","circle","ribbon"];
-
-    function makeParticle(ox, oy) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 8 + Math.random() * 22;
-      const shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
-      const size  = shape === "ribbon" ? (2 + Math.random() * 3) : (5 + Math.random() * 9);
-      const len   = shape === "ribbon" ? (18 + Math.random() * 22) : size;
-      return {
-        x: ox, y: oy,
-        vx: Math.cos(angle) * speed * (0.6 + Math.random() * 0.8),
-        vy: Math.sin(angle) * speed * (0.6 + Math.random() * 0.8) - (Math.random() * 6),
-        color: COLORS[Math.floor(Math.random() * COLORS.length)],
-        shape, size, len,
-        rot: Math.random() * Math.PI * 2,
-        rotV: (Math.random() - 0.5) * 0.3,
-        alpha: 1,
-        gravity: 0.35 + Math.random() * 0.2,
-        drag: 0.97 + Math.random() * 0.015,
-        wobble: Math.random() * Math.PI * 2,
-        wobbleV: 0.06 + Math.random() * 0.08,
-        decay: 0.008 + Math.random() * 0.006,
-      };
-    }
-
-    const origins = [
-      [canvas.width * 0.5,  canvas.height * 0.45],
-      [canvas.width * 0.2,  canvas.height * 0.5 ],
-      [canvas.width * 0.8,  canvas.height * 0.5 ],
-      [canvas.width * 0.35, canvas.height * 0.35],
-      [canvas.width * 0.65, canvas.height * 0.35],
-    ];
-
-    let particles = [];
-    origins.forEach(([ox,oy], bi) => {
-      const count = bi === 0 ? 120 : 60;
-      setTimeout(() => {
-        for (let i = 0; i < count; i++) particles.push(makeParticle(ox, oy));
-      }, bi * 120);
-    });
-
-    let startTime = null;
-    const DURATION = 4500;
-
-    function draw(ts) {
-      if (!startTime) startTime = ts;
-      const elapsed = ts - startTime;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      particles.forEach(p => {
-        p.vy += p.gravity;
-        p.vx *= p.drag;
-        p.vy *= p.drag;
-        p.x  += p.vx;
-        p.y  += p.vy;
-        p.rot    += p.rotV;
-        p.wobble += p.wobbleV;
-        if (elapsed > DURATION * 0.5) p.alpha -= p.decay;
-        p.alpha = Math.max(0, p.alpha);
-        if (p.alpha <= 0) return;
-
-        ctx.save();
-        ctx.globalAlpha = p.alpha;
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.rot);
-        ctx.fillStyle = p.color;
-
-        if (p.shape === "circle") {
-          ctx.beginPath();
-          ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
-          ctx.fill();
-        } else if (p.shape === "ribbon") {
-          ctx.save();
-          ctx.rotate(Math.sin(p.wobble) * 0.4);
-          ctx.fillRect(-p.size / 2, -p.len / 2, p.size, p.len);
-          ctx.restore();
-        } else {
-          const w = p.size * (0.6 + 0.8 * Math.abs(Math.cos(p.wobble)));
-          const h = p.size * (0.6 + 0.8 * Math.abs(Math.sin(p.wobble)));
-          ctx.fillRect(-w/2, -h/2, w, h);
-        }
-        ctx.restore();
-      });
-
-      particles = particles.filter(p => p.alpha > 0);
-
-      if (elapsed < DURATION || particles.length > 0) {
-        rafRef.current = requestAnimationFrame(draw);
-      } else {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if (onDone) onDone();
-      }
-    }
-
-    rafRef.current = requestAnimationFrame(draw);
-    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+    if (!active) { setPhase(0); return; }
+    setPhase(1);
+    const t1 = setTimeout(() => setPhase(2), 400);
+    const t2 = setTimeout(() => setPhase(3), 2800);
+    const t3 = setTimeout(() => setPhase(0), 4200);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [active]);
 
-  if (!active) return null;
+  if (!phase) return null;
+
   return (
-    <canvas ref={canvasRef} style={{
-      position:"fixed", inset:0, zIndex:999,
-      pointerEvents:"none", width:"100%", height:"100%",
-    }}/>
+    <div style={{ position:"fixed", inset:0, zIndex:999, pointerEvents:"none", overflow:"hidden" }}>
+      {/* Central radial burst */}
+      <div style={{
+        position:"absolute", top:"40%", left:"50%",
+        transform:"translate(-50%,-50%)",
+        width: phase >= 1 ? "600px" : "0px",
+        height: phase >= 1 ? "600px" : "0px",
+        borderRadius:"50%",
+        background:`radial-gradient(circle, ${color}30 0%, ${color}12 35%, transparent 70%)`,
+        transition: phase === 1 ? "all 0.4s cubic-bezier(0.16,1,0.3,1)" : phase === 3 ? "opacity 1s ease-out" : "all 1.5s ease-in-out",
+        opacity: phase === 3 ? 0 : 1,
+      }}/>
+
+      {/* Ring ripples */}
+      {[0, 1, 2].map(i => (
+        <div key={i} style={{
+          position:"absolute", top:"40%", left:"50%",
+          transform:"translate(-50%,-50%)",
+          width: phase >= 1 ? `${300 + i * 120}px` : "0px",
+          height: phase >= 1 ? `${300 + i * 120}px` : "0px",
+          borderRadius:"50%",
+          border: `2px solid ${color}${phase === 3 ? "00" : i === 0 ? "40" : "20"}`,
+          boxShadow: phase === 2 ? `0 0 ${30 - i * 8}px ${color}25, inset 0 0 ${20 - i * 5}px ${color}15` : "none",
+          transition: `all ${0.5 + i * 0.15}s cubic-bezier(0.16,1,0.3,1) ${i * 0.1}s, opacity 1s ease-out`,
+          opacity: phase === 3 ? 0 : 1,
+        }}/>
+      ))}
+
+      {/* Pulsing core glow */}
+      <div style={{
+        position:"absolute", top:"40%", left:"50%",
+        transform:"translate(-50%,-50%)",
+        width: phase >= 1 ? "120px" : "0px",
+        height: phase >= 1 ? "120px" : "0px",
+        borderRadius:"50%",
+        background:`radial-gradient(circle, ${color}50 0%, ${color}20 50%, transparent 100%)`,
+        boxShadow: phase === 2 ? `0 0 60px ${color}40, 0 0 120px ${color}20` : "none",
+        transition: phase === 1 ? "all 0.3s cubic-bezier(0.16,1,0.3,1)" : phase === 3 ? "opacity 0.8s ease-out" : "all 2s ease-in-out",
+        opacity: phase === 3 ? 0 : 1,
+        animation: phase === 2 ? "glowPulse 1.2s ease-in-out infinite" : "none",
+      }}/>
+
+      {/* Sparkle particles */}
+      {phase >= 1 && Array.from({length:12}).map((_,i) => {
+        const angle = (i / 12) * Math.PI * 2;
+        const dist = phase >= 2 ? 140 + Math.random() * 60 : 0;
+        const x = Math.cos(angle) * dist;
+        const y = Math.sin(angle) * dist;
+        return (
+          <div key={i} style={{
+            position:"absolute", top:"40%", left:"50%",
+            width:"4px", height:"4px", borderRadius:"50%",
+            background:color, boxShadow:`0 0 8px ${color}`,
+            transform:`translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
+            transition:`all ${0.6 + Math.random() * 0.3}s cubic-bezier(0.16,1,0.3,1) ${i * 0.03}s, opacity 0.8s ease-out`,
+            opacity: phase === 3 ? 0 : phase >= 1 ? 0.8 : 0,
+          }}/>
+        );
+      })}
+
+      <style>{`
+        @keyframes glowPulse {
+          0%, 100% { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+          50% { transform: translate(-50%,-50%) scale(1.3); opacity: 0.7; }
+        }
+      `}</style>
+    </div>
   );
 }
 
@@ -2189,21 +2162,22 @@ function SupplementsView({ suppLogs, setSuppLogs, t, period }) {
             const missed = !isFuture && !entry.supplements && !entry.creatine;
 
             let bgColor = null;
+            let bgOpacity = 1;
             if (both) bgColor = SUPP_COLOR;
-            else if (suppOnly) bgColor = SUPP_COLOR+"88";
-            else if (creatineOnly) bgColor = CREATINE_COLOR+"88";
-            else if (missed && !isToday) bgColor = "#ef4444";
+            else if (suppOnly) { bgColor = SUPP_COLOR; bgOpacity = 0.55; }
+            else if (creatineOnly) { bgColor = CREATINE_COLOR; bgOpacity = 0.55; }
+            else if (missed && !isToday) { bgColor = "#ef4444"; bgOpacity = 0.45; }
 
             return (
               <div key={d} onClick={()=>!isFuture && setSel(isSel ? null : d)} style={{
                 aspectRatio:"1", minHeight:"36px", borderRadius:"50%",
-                background: bgColor ? `linear-gradient(135deg, ${bgColor}, ${bgColor}dd)` : isToday ? t.accentGlow : (isFuture ? "transparent" : "transparent"),
+                background: bgColor ? bgColor : isToday ? t.accentGlow : "transparent",
+                opacity: isFuture ? 0.2 : bgColor ? bgOpacity : 1,
                 border: isSel ? `2px solid ${t.accent}` : isToday && !bgColor ? `2px solid ${t.accent}` : bgColor ? "none" : `1px solid ${t.border}`,
                 display:"flex", alignItems:"center", justifyContent:"center",
                 cursor: isFuture ? "default" : "pointer",
-                opacity: isFuture ? 0.2 : missed ? 0.5 : 1,
                 transition:"all 0.2s cubic-bezier(0.4,0,0.2,1)",
-                boxShadow: bgColor && !missed ? `0 2px 8px ${bgColor}33` : "none",
+                boxShadow: bgColor && bgOpacity === 1 ? `0 2px 8px ${bgColor}33` : "none",
               }}>
                 <span style={{
                   fontSize:"12px", fontWeight: bgColor || isToday ? "700" : "400",
@@ -2220,13 +2194,13 @@ function SupplementsView({ suppLogs, setSuppLogs, t, period }) {
         {/* Legend */}
         <div style={{display:"flex",gap:"8px",marginTop:"12px",flexWrap:"wrap"}}>
           {[
-            [SUPP_COLOR,"Both"],
-            [SUPP_COLOR+"88","💊 only"],
-            [CREATINE_COLOR+"88","⚡ only"],
-            ["#ef4444","Missed"],
-          ].map(([bg,lbl])=>(
+            [SUPP_COLOR,1,"Both"],
+            [SUPP_COLOR,0.55,"💊 only"],
+            [CREATINE_COLOR,0.55,"⚡ only"],
+            ["#ef4444",0.45,"Missed"],
+          ].map(([bg,op,lbl])=>(
             <div key={lbl} style={{display:"flex",alignItems:"center",gap:"5px",fontSize:"12px",color:t.textSub}}>
-              <div style={{width:"10px",height:"10px",borderRadius:"3px",background:bg}}/>
+              <div style={{width:"10px",height:"10px",borderRadius:"3px",background:bg,opacity:op}}/>
               {lbl}
             </div>
           ))}
@@ -2765,49 +2739,7 @@ export default function ActivityTracker() {
               );
             })()}
 
-            {/* Canvas confetti explosion */}
-            <CanvasConfetti active={!!quote} />
-
-            {/* Celebratory quote overlay */}
-            {quote && (
-              <div style={{
-                position:"fixed", inset:0, zIndex:1000,
-                display:"flex", alignItems:"flex-end",
-                justifyContent:"center",
-                padding:"0 16px 110px",
-                pointerEvents:"none",
-              }}>
-                <div style={{
-                  width:"100%", maxWidth:"390px",
-                  background: dark ? "rgba(12,12,16,0.97)" : "rgba(255,255,255,0.97)",
-                  border:`1px solid ${t.accent}44`,
-                  borderRadius:"20px",
-                  padding:"26px 24px 22px",
-                  boxShadow:"0 12px 60px rgba(0,0,0,0.4)",
-                  pointerEvents:"auto",
-                  animation:"quoteUp 0.55s cubic-bezier(0.34,1.5,0.64,1) forwards",
-                }}>
-                  <div style={{fontSize:"32px",textAlign:"center",marginBottom:"14px",display:"block",animation:"popIn 0.4s 0.15s cubic-bezier(0.34,1.6,0.64,1) both"}}>🎉</div>
-                  <div style={{
-                    fontSize:"14px",color:t.text,lineHeight:"1.65",
-                    fontStyle:"italic",fontWeight:"500",textAlign:"center",marginBottom:"12px",
-                  }}>"{quote.text}"</div>
-                  {quote.author !== "Unknown" && (
-                    <div style={{fontSize:"12px",color:t.textSub,textAlign:"center",fontWeight:"500"}}>— {quote.author}</div>
-                  )}
-                </div>
-                <style>{`
-                  @keyframes quoteUp {
-                    from { transform: translateY(60px) scale(0.92); opacity: 0; }
-                    to   { transform: translateY(0) scale(1); opacity: 1; }
-                  }
-                  @keyframes popIn {
-                    from { transform: scale(0) rotate(-20deg); opacity: 0; }
-                    to   { transform: scale(1) rotate(0deg);   opacity: 1; }
-                  }
-                `}</style>
-              </div>
-            )}
+            {/* Power glow + quote rendered at top level */}
 
             {ouraToday&&<OuraBadge data={{...ouraToday,date:"Today"}} t={t}/>}
 
@@ -2897,14 +2829,15 @@ export default function ActivityTracker() {
               position:"relative",
             }}>
               {/* Ambient glow behind ring */}
-              <div style={{position:"absolute",top:"20px",left:"50%",transform:"translateX(-50%)",width:"180px",height:"180px",borderRadius:"50%",background:`radial-gradient(circle, ${t.accent}15 0%, transparent 70%)`,pointerEvents:"none"}}/>
+              <div style={{position:"absolute",top:"20px",left:"50%",transform:"translateX(-50%)",width:"180px",height:"180px",borderRadius:"50%",background:"radial-gradient(circle, rgba(245,158,11,0.12) 0%, transparent 70%)",pointerEvents:"none"}}/>
               
               <ScoreRing
                 key={ringKey}
                 score={streak}
                 maxScore={Math.max(streak, 30)}
                 label="DAY STREAK"
-                color={t.accent}
+                color="#f59e0b"
+                goldNumber={true}
                 secondaryScore={actLogs.filter(l => {
                   const d = new Date(l.date+"T12:00:00");
                   const now = new Date();
@@ -3073,6 +3006,50 @@ export default function ActivityTracker() {
           );
         })}
       </div>
+
+      {/* Power glow + quote — at top level to avoid overflow clipping */}
+      <PowerGlow active={!!quote} color={t.accent} />
+      {quote && (
+        <div style={{
+          position:"fixed", top:0, left:0, right:0, bottom:0, zIndex:1000,
+          display:"flex", alignItems:"center", justifyContent:"center",
+          padding:"0 24px",
+          pointerEvents:"none",
+        }}>
+          <div style={{
+            width:"100%", maxWidth:"340px",
+            background: dark ? "rgba(12,12,16,0.95)" : "rgba(255,255,255,0.95)",
+            border:`1px solid ${t.accent}33`,
+            borderRadius:"24px",
+            padding:"32px 28px 28px",
+            boxShadow:`0 0 80px ${t.accent}20, 0 20px 60px rgba(0,0,0,0.3)`,
+            pointerEvents:"auto",
+            backdropFilter:"blur(20px)",
+            animation:"quoteGlow 0.6s cubic-bezier(0.34,1.5,0.64,1) forwards",
+          }}>
+            <div style={{fontSize:"28px",textAlign:"center",marginBottom:"16px",animation:"popIn 0.4s 0.15s cubic-bezier(0.34,1.6,0.64,1) both"}}>{"⚡"}</div>
+            <div style={{
+              fontSize:"15px",color:t.text,lineHeight:"1.7",
+              fontStyle:"italic",fontWeight:"500",textAlign:"center",marginBottom:"14px",
+              letterSpacing:"0.2px",
+            }}>{"\u201C"}{quote.text}{"\u201D"}</div>
+            {quote.author !== "Unknown" && (
+              <div style={{fontSize:"12px",color:t.accent,textAlign:"center",fontWeight:"600",letterSpacing:"0.5px",opacity:0.8}}>{"\u2014 "}{quote.author}</div>
+            )}
+          </div>
+          <style>{`
+            @keyframes quoteGlow {
+              from { transform: scale(0.85); opacity: 0; }
+              to   { transform: scale(1); opacity: 1; }
+            }
+            @keyframes popIn {
+              from { transform: scale(0) rotate(-10deg); opacity: 0; }
+              to   { transform: scale(1) rotate(0deg); opacity: 1; }
+            }
+          `}</style>
+        </div>
+      )}
+
     </div>
   );
 }

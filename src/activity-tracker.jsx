@@ -2041,7 +2041,6 @@ function SupplementsView({ suppLogs, setSuppLogs, t, period }) {
           </Card>
         ))}
       </div>
-        <Card t={t} style={{padding:"12px 8px",textAlign:"center"}}>
       {/* Adherence bars — sleek progress */}
       <Card t={t} style={{padding:"16px 18px",marginBottom:"16px"}}>
         {[

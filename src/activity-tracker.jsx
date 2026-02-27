@@ -4,6 +4,11 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from "react"
 class ErrorBoundary extends React.Component {
   constructor(props) { super(props); this.state = { error: null }; }
   static getDerivedStateFromError(error) { return { error }; }
+  componentDidUpdate(prevProps) {
+    if (this.state.error && prevProps.children !== this.props.children) {
+      this.setState({ error: null });
+    }
+  }
   render() {
     if (this.state.error) return (
       <div style={{padding:"20px",color:"#f87171",fontSize:"13px",background:"rgba(248,113,113,0.1)",borderRadius:"12px",margin:"8px 0"}}>
@@ -414,6 +419,12 @@ function OuraBadge({ data, t }) {
 
 // ─── Oura-style Score Ring ───────────────────────────────────────────────────
 function ScoreRing({ score, maxScore, label, icon, color, secondaryScore, secondaryLabel, secondaryColor, size=160, t }) {
+  const [animated, setAnimated] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setAnimated(true));
+    return () => { cancelAnimationFrame(id); setAnimated(false); };
+  }, [score, secondaryScore]);
+
   const r = size * 0.4;
   const r2 = size * 0.32;
   const cx = size/2, cy = size/2;
@@ -421,8 +432,8 @@ function ScoreRing({ score, maxScore, label, icon, color, secondaryScore, second
   const circumference2 = 2 * Math.PI * r2;
   const pct = maxScore > 0 ? Math.min(score / maxScore, 1) : 0;
   const pct2 = secondaryScore !== undefined && maxScore > 0 ? Math.min(secondaryScore / maxScore, 1) : 0;
-  const strokeDash = circumference * pct;
-  const strokeDash2 = circumference2 * pct2;
+  const strokeDash = animated ? circumference * pct : 0;
+  const strokeDash2 = animated ? circumference2 * pct2 : 0;
   const gradId = `ring_${label}_${color}`.replace(/[^a-zA-Z0-9]/g,'');
 
   return (
@@ -508,41 +519,41 @@ function CalendarView({ logs, ouraData, tree, mtProgress, t, period }) {
 
   // ── YEAR VIEW ──
   if (period === "year") {
+    try {
     return (
       <div>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"16px"}}>
-          <button onClick={()=>setVd(new Date(yr-1,0,1))} style={{background:"none",border:"none",cursor:"pointer",color:t.textSub,fontSize:"14px",padding:"4px 8px"}}>‹</button>
-          <span style={{fontSize:"16px",fontWeight:"600",color:t.text}}>{yr}</span>
-          <button onClick={()=>setVd(new Date(yr+1,0,1))} disabled={!canNextYr} style={{background:"none",border:"none",cursor:canNextYr?"pointer":"default",color:canNextYr?t.textSub:t.border,fontSize:"14px",padding:"4px 8px"}}>›</button>
+          <button onClick={()=>setVd(new Date(yr-1,0,1))} style={{background:"none",border:"none",cursor:"pointer",color:t.textSub,fontSize:"14px",padding:"4px 8px"}}>{"‹"}</button>
+          <span style={{fontSize:"16px",fontWeight:"600",color:t.text}}>{String(yr)}</span>
+          <button onClick={()=>setVd(new Date(yr+1,0,1))} disabled={!canNextYr} style={{background:"none",border:"none",cursor:canNextYr?"pointer":"default",color:canNextYr?t.textSub:t.border,fontSize:"14px",padding:"4px 8px"}}>{"›"}</button>
         </div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"10px"}}>
           {MONTHS.map((mName,mi) => {
             const mDim = new Date(yr,mi+1,0).getDate();
-            const mFd = new Date(yr,mi,1).getDay();
-            let active=0, rest=0, total=0;
+            let active=0, total=0;
             for (let d=1;d<=mDim;d++) {
               const dateStr = dsYr(mi,d);
               if (dateStr > tStr) continue;
               total++;
               if (hasActivity(dateStr)) active++;
-              else if (hasRest(dateStr)) rest++;
             }
             const pct = total > 0 ? Math.round(active/total*100) : 0;
             const barColor = pct >= 60 ? "#22c55e" : pct >= 30 ? "#eab308" : "#ef4444";
             return (
-              <Card t={t} key={mi} style={{padding:"8px",textAlign:"center"}}>
-                <div style={{fontSize:"12px",fontWeight:"600",color:t.text,marginBottom:"6px"}}>{mName.slice(0,3)}</div>
+              <div key={mi} style={{padding:"8px",textAlign:"center",background:t.surface,borderRadius:"12px",border:"1px solid "+t.border}}>
+                <div style={{fontSize:"12px",fontWeight:"600",color:t.text,marginBottom:"6px"}}>{String(mName).slice(0,3)}</div>
                 <div style={{background:t.surface2,borderRadius:"3px",height:"4px",overflow:"hidden",marginBottom:"4px"}}>
-                  <div style={{height:"100%",width:pct+"%",background:barColor,borderRadius:"3px"}}/>
+                  <div style={{height:"100%",width:String(pct)+"%",background:barColor,borderRadius:"3px"}}/>
                 </div>
-                <div style={{fontSize:"11px",color:t.textSub}}>{active}d / {total}d</div>
-                <div style={{fontSize:"10px",color:barColor,fontWeight:"600"}}>{pct}%</div>
-              </Card>
+                <div style={{fontSize:"11px",color:t.textSub}}>{String(active) + "d / " + String(total) + "d"}</div>
+                <div style={{fontSize:"10px",color:barColor,fontWeight:"600"}}>{String(pct) + "%"}</div>
+              </div>
             );
           })}
         </div>
       </div>
     );
+    } catch(e) { return <div style={{color:"red",padding:"20px"}}>{String(e)}</div>; }
   }
 
   // ── MONTH VIEW ──
@@ -551,6 +562,16 @@ function CalendarView({ logs, ouraData, tree, mtProgress, t, period }) {
   const selLogs=sel?dl(sel):[], selOura=sel?od(sel):null;
   const selMT=sel?mtOnDate(ds(sel)):[];
   const calTouch = useRef(null);
+  const [slideDir, setSlideDir] = useState(null); // "left" | "right" | null
+
+  const goMonth = (dir) => {
+    setSel(null);
+    setSlideDir(dir === 1 ? "left" : "right");
+    setTimeout(() => {
+      setVd(new Date(yr, mo + dir, 1));
+      setSlideDir(null);
+    }, 200);
+  };
 
   return (
     <div
@@ -559,18 +580,24 @@ function CalendarView({ logs, ouraData, tree, mtProgress, t, period }) {
         if (calTouch.current === null) return;
         const diff = calTouch.current - e.changedTouches[0].clientX;
         if (Math.abs(diff) > 60) {
-          if (diff > 0 && canNext) { setSel(null); setVd(new Date(yr,mo+1,1)); }
-          if (diff < 0) { setSel(null); setVd(new Date(yr,mo-1,1)); }
+          if (diff > 0 && canNext) goMonth(1);
+          if (diff < 0) goMonth(-1);
         }
         calTouch.current = null;
       }}
     >
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"16px"}}>
-        <button onClick={()=>{setSel(null);setVd(new Date(yr,mo-1,1));}} style={{background:"none",border:"none",cursor:"pointer",color:t.textSub,fontSize:"16px",padding:"4px 12px",fontWeight:"300"}}>‹</button>
+        <button onClick={()=>goMonth(-1)} style={{background:"none",border:"none",cursor:"pointer",color:t.textSub,fontSize:"16px",padding:"4px 12px",fontWeight:"300"}}>{"‹"}</button>
         <span style={{fontSize:"15px",fontWeight:"700",color:t.text,letterSpacing:"0.5px"}}>{MONTHS[mo]} {yr}</span>
-        <button onClick={()=>{setSel(null);setVd(new Date(yr,mo+1,1));}} disabled={!canNext} style={{background:"none",border:"none",cursor:canNext?"pointer":"default",color:canNext?t.textSub:t.border,fontSize:"16px",padding:"4px 12px",fontWeight:"300"}}>›</button>
+        <button onClick={()=>canNext&&goMonth(1)} disabled={!canNext} style={{background:"none",border:"none",cursor:canNext?"pointer":"default",color:canNext?t.textSub:t.border,fontSize:"16px",padding:"4px 12px",fontWeight:"300"}}>{"›"}</button>
       </div>
 
+      {/* Animated grid container */}
+      <div style={{
+        transform: slideDir === "left" ? "translateX(-30px)" : slideDir === "right" ? "translateX(30px)" : "translateX(0)",
+        opacity: slideDir ? 0.3 : 1,
+        transition: slideDir ? "none" : "all 0.25s cubic-bezier(0.4,0,0.2,1)",
+      }}>
       <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"3px",marginBottom:"3px"}}>
         {DAY_LABELS.map((d,i)=><div key={i} style={{textAlign:"center",fontSize:"12px",color:t.textMuted,padding:"3px 0"}}>{d}</div>)}
       </div>
@@ -654,6 +681,7 @@ function CalendarView({ logs, ouraData, tree, mtProgress, t, period }) {
           );
         })}
       </div>
+      </div>{/* end slide animation wrapper */}
 
       {/* Legend */}
       <div style={{display:"flex",gap:"10px",marginTop:"12px",flexWrap:"wrap",justifyContent:"center"}}>
@@ -2249,6 +2277,7 @@ export default function ActivityTracker() {
   const [logs,     setLogs]     = useState([]);
   const [tree,     setTree]     = useState(DEFAULT_ACTIVITY_TREE);
   const [view,     setView]     = useState("calendar");
+  const [ringKey,  setRingKey]  = useState(0);
   const [logMode,  setLogMode]  = useState("activity");
   const [selTop,   setSelTop]   = useState(null);  // selected parent activity id
   const [selSub,   setSelSub]   = useState(null);  // selected sub id
@@ -2445,8 +2474,8 @@ export default function ActivityTracker() {
   }, [dark]);
 
   const TABS = [
-    { id:"log",      label:"Log",      icon:"+" },
     { id:"mobility", label:"Mobility", icon:"◆" },
+    { id:"log",      label:"Log",      icon:"+" },
     { id:"calendar", label:"Calendar", icon:"▦", featured:true },
     { id:"manage",   label:"Manage",   icon:"✎"  },
     { id:"theme",    label:dark?"Light":"Dark", icon:dark?"☀️":"🌙" },
@@ -2871,6 +2900,7 @@ export default function ActivityTracker() {
               <div style={{position:"absolute",top:"20px",left:"50%",transform:"translateX(-50%)",width:"180px",height:"180px",borderRadius:"50%",background:`radial-gradient(circle, ${t.accent}15 0%, transparent 70%)`,pointerEvents:"none"}}/>
               
               <ScoreRing
+                key={ringKey}
                 score={streak}
                 maxScore={Math.max(streak, 30)}
                 label="DAY STREAK"
@@ -2928,7 +2958,7 @@ export default function ActivityTracker() {
             <Label t={t}>Activity</Label>
 
             {/* Activity Calendar */}
-            <ErrorBoundary name="CalendarView">
+            <ErrorBoundary name="CalendarView" key={"cal-"+calPeriod}>
             <CalendarView logs={logs} ouraData={ouraData} tree={tree} mtProgress={mtProgress} t={t} period={calPeriod}/>
             </ErrorBoundary>
             
@@ -2937,7 +2967,7 @@ export default function ActivityTracker() {
 
             {/* Activity Stats */}
             <Label t={t}>Stats</Label>
-            <ErrorBoundary name="StatsView">
+            <ErrorBoundary name="StatsView" key={"stats-"+calPeriod}>
             <StatsView logs={logs} actLogs={actLogs} restLogs={restLogs} tree={tree} ouraData={ouraData} hasOura={hasOura} totalMin={totalMin} streak={streak} activityCounts={activityCounts} mtProgress={mtProgress} t={t} forcePeriod={calPeriod}/>
             </ErrorBoundary>
 
@@ -2946,7 +2976,7 @@ export default function ActivityTracker() {
 
             {/* Supplements Calendar & Stats */}
             <Label t={t}>Supplements</Label>
-            <ErrorBoundary name="SupplementsView">
+            <ErrorBoundary name="SupplementsView" key={"supp-"+calPeriod}>
             <SupplementsView suppLogs={suppLogs} setSuppLogs={setSuppLogs} t={t} period={calPeriod}/>
             </ErrorBoundary>
           </div>
@@ -3021,7 +3051,7 @@ export default function ActivityTracker() {
           const isActive = view===tab.id;
           const color = isActive ? t.accent : t.textMuted;
           return (
-          <button key={tab.id} onClick={()=>tab.id==="theme"?toggleDark():setView(tab.id)} style={{
+          <button key={tab.id} onClick={()=>{if(tab.id==="theme"){toggleDark();}else{setView(tab.id);if(tab.id==="calendar")setRingKey(k=>k+1);}}} style={{
             background:"none",border:"none",cursor:"pointer",
             display:"flex",flexDirection:"column",alignItems:"center",gap:"2px",padding:"4px 0",
             transform: isFeatured ? "scale(1.15)" : "none",

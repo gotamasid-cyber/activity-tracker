@@ -7,8 +7,8 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.error) return (
       <div style={{padding:"20px",color:"#f87171",fontSize:"13px",background:"rgba(248,113,113,0.1)",borderRadius:"12px",margin:"8px 0"}}>
-        <div style={{fontWeight:"700",marginBottom:"4px"}}>Something went wrong</div>
-        <div style={{opacity:0.7}}>{this.state.error?.message}</div>
+        <div style={{fontWeight:"700",marginBottom:"4px"}}>Error in {this.props.name || "component"}</div>
+        <div style={{opacity:0.7,wordBreak:"break-all"}}>{String(this.state.error?.message || this.state.error)}</div>
         <button onClick={()=>this.setState({error:null})} style={{marginTop:"8px",padding:"6px 12px",background:"#f87171",color:"#fff",border:"none",borderRadius:"8px",cursor:"pointer",fontSize:"12px"}}>Retry</button>
       </div>
     );
@@ -2928,7 +2928,7 @@ export default function ActivityTracker() {
             <Label t={t}>Activity</Label>
 
             {/* Activity Calendar */}
-            <ErrorBoundary>
+            <ErrorBoundary name="CalendarView">
             <CalendarView logs={logs} ouraData={ouraData} tree={tree} mtProgress={mtProgress} t={t} period={calPeriod}/>
             </ErrorBoundary>
             
@@ -2937,7 +2937,7 @@ export default function ActivityTracker() {
 
             {/* Activity Stats */}
             <Label t={t}>Stats</Label>
-            <ErrorBoundary>
+            <ErrorBoundary name="StatsView">
             <StatsView logs={logs} actLogs={actLogs} restLogs={restLogs} tree={tree} ouraData={ouraData} hasOura={hasOura} totalMin={totalMin} streak={streak} activityCounts={activityCounts} mtProgress={mtProgress} t={t} forcePeriod={calPeriod}/>
             </ErrorBoundary>
 
@@ -2946,7 +2946,7 @@ export default function ActivityTracker() {
 
             {/* Supplements Calendar & Stats */}
             <Label t={t}>Supplements</Label>
-            <ErrorBoundary>
+            <ErrorBoundary name="SupplementsView">
             <SupplementsView suppLogs={suppLogs} setSuppLogs={setSuppLogs} t={t} period={calPeriod}/>
             </ErrorBoundary>
           </div>

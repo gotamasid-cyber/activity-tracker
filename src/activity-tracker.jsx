@@ -418,15 +418,31 @@ function OuraBadge({ data, t }) {
 }
 
 // ─── Oura-style Score Ring ───────────────────────────────────────────────────
-function ScoreRing({ score, maxScore, label, icon, color, secondaryScore, secondaryLabel, secondaryColor, size=160, t, goldNumber=false }) {
+function ScoreRing({ score, maxScore, label, icon, color, ringColor, secondaryScore, secondaryLabel, secondaryColor, size=160, t, goldNumber=false }) {
   const [animated, setAnimated] = useState(false);
+  const [showGoldAnim, setShowGoldAnim] = useState(false);
+  const prevScoreRef = useRef(score);
+  const uid = useRef(Math.random().toString(36).slice(2,8)).current;
+  
   useEffect(() => {
     const id = requestAnimationFrame(() => setAnimated(true));
     return () => { cancelAnimationFrame(id); setAnimated(false); };
   }, [score, secondaryScore]);
 
-  const r = size * 0.4;
-  const r2 = size * 0.32;
+  useEffect(() => {
+    if (prevScoreRef.current === 0 && score > 0 && goldNumber) {
+      setShowGoldAnim(true);
+      const timer = setTimeout(() => setShowGoldAnim(false), 2000);
+      return () => clearTimeout(timer);
+    }
+    prevScoreRef.current = score;
+  }, [score, goldNumber]);
+
+  const isZero = score === 0;
+  const hasStreak = score > 0 && goldNumber;
+  const actualRingColor = ringColor || color;
+
+  const r = size * 0.4, r2 = size * 0.32;
   const cx = size/2, cy = size/2;
   const circumference = 2 * Math.PI * r;
   const circumference2 = 2 * Math.PI * r2;
@@ -434,36 +450,95 @@ function ScoreRing({ score, maxScore, label, icon, color, secondaryScore, second
   const pct2 = secondaryScore !== undefined && maxScore > 0 ? Math.min(secondaryScore / maxScore, 1) : 0;
   const strokeDash = animated ? circumference * pct : 0;
   const strokeDash2 = animated ? circumference2 * pct2 : 0;
-  const gradId = `ring_${label}_${color}`.replace(/[^a-zA-Z0-9]/g,'');
-  const goldGradId = gradId + "_gold";
+  const G = `sr_${uid}`;
 
   return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",position:"relative"}}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{filter:`drop-shadow(0 0 20px ${color}33)`}}>
+      {showGoldAnim && (
+        <div style={{
+          position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",
+          width:size*1.4+"px",height:size*1.4+"px",borderRadius:"50%",
+          background:"radial-gradient(circle, rgba(251,191,36,0.35) 0%, rgba(245,158,11,0.15) 30%, transparent 65%)",
+          animation:`${G}_burst 1.5s ease-out forwards`,zIndex:0,pointerEvents:"none",
+        }}/>
+      )}
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{filter: hasStreak ? `drop-shadow(0 0 20px ${actualRingColor}33)` : "none", position:"relative",zIndex:1}}>
         <defs>
-          <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity="1"/>
-            <stop offset="100%" stopColor={color} stopOpacity="0.5"/>
+          <linearGradient id={`${G}_ring`} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor={actualRingColor} stopOpacity="1"/>
+            <stop offset="100%" stopColor={actualRingColor} stopOpacity="0.5"/>
           </linearGradient>
           {secondaryColor && (
-            <linearGradient id={gradId+"2"} x1="0" y1="0" x2="1" y2="1">
+            <linearGradient id={`${G}_ring2`} x1="0" y1="0" x2="1" y2="1">
               <stop offset="0%" stopColor={secondaryColor} stopOpacity="1"/>
               <stop offset="100%" stopColor={secondaryColor} stopOpacity="0.5"/>
             </linearGradient>
           )}
-          {goldNumber && (
-            <linearGradient id={goldGradId} x1="0" y1="0" x2="1" y2="1" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#fde68a"><animate attributeName="stop-color" values="#fde68a;#f59e0b;#fbbf24;#fde68a" dur="3s" repeatCount="indefinite"/></stop>
-              <stop offset="35%" stopColor="#f59e0b"><animate attributeName="stop-color" values="#f59e0b;#fbbf24;#fde68a;#f59e0b" dur="3s" repeatCount="indefinite"/></stop>
-              <stop offset="65%" stopColor="#fbbf24"><animate attributeName="stop-color" values="#fbbf24;#fde68a;#f59e0b;#fbbf24" dur="3s" repeatCount="indefinite"/></stop>
-              <stop offset="100%" stopColor="#d97706"><animate attributeName="stop-color" values="#d97706;#fde68a;#d97706;#fbbf24" dur="3s" repeatCount="indefinite"/></stop>
+          {/* ── 3D GOLD BASE: deep bevelled metallic gradient ── */}
+          {hasStreak && (
+            <linearGradient id={`${G}_base`} x1="0" y1="0" x2="0.3" y2="1" gradientUnits="objectBoundingBox">
+              <stop offset="0%" stopColor="#fef9c3"/>
+              <stop offset="12%" stopColor="#fde68a"/>
+              <stop offset="28%" stopColor="#fbbf24"/>
+              <stop offset="45%" stopColor="#f59e0b"/>
+              <stop offset="62%" stopColor="#d97706"/>
+              <stop offset="78%" stopColor="#b45309"/>
+              <stop offset="100%" stopColor="#78350f"/>
             </linearGradient>
           )}
+          {/* ── SWEEPING SHIMMER: bright highlight band that glides across using animated coordinates ── */}
+          {hasStreak && (
+            <linearGradient id={`${G}_shimmer`} gradientUnits="userSpaceOnUse"
+              x1={cx-60} y1={cy-20} x2={cx-40} y2={cy+10}>
+              <animate attributeName="x1" values={`${cx-60};${cx+60}`} dur="5s" repeatCount="indefinite"/>
+              <animate attributeName="x2" values={`${cx-40};${cx+80}`} dur="5s" repeatCount="indefinite"/>
+              <animate attributeName="y1" values={`${cy-20};${cy-10}`} dur="5s" repeatCount="indefinite"/>
+              <animate attributeName="y2" values={`${cy+10};${cy+5}`} dur="5s" repeatCount="indefinite"/>
+              <stop offset="0%" stopColor="#fffbeb" stopOpacity="0"/>
+              <stop offset="40%" stopColor="#fffbeb" stopOpacity="0"/>
+              <stop offset="50%" stopColor="#fffbeb" stopOpacity="0.9"/>
+              <stop offset="60%" stopColor="#fffbeb" stopOpacity="0"/>
+              <stop offset="100%" stopColor="#fffbeb" stopOpacity="0"/>
+            </linearGradient>
+          )}
+          {/* ── SECOND SHIMMER: offset pass for richer effect ── */}
+          {hasStreak && (
+            <linearGradient id={`${G}_shimmer2`} gradientUnits="userSpaceOnUse"
+              x1={cx+60} y1={cy-15} x2={cx+80} y2={cy+8}>
+              <animate attributeName="x1" values={`${cx+60};${cx-60}`} dur="6.4s" repeatCount="indefinite"/>
+              <animate attributeName="x2" values={`${cx+80};${cx-40}`} dur="6.4s" repeatCount="indefinite"/>
+              <animate attributeName="y1" values={`${cy-15};${cy-8}`} dur="6.4s" repeatCount="indefinite"/>
+              <animate attributeName="y2" values={`${cy+8};${cy+2}`} dur="6.4s" repeatCount="indefinite"/>
+              <stop offset="0%" stopColor="#fde68a" stopOpacity="0"/>
+              <stop offset="35%" stopColor="#fde68a" stopOpacity="0"/>
+              <stop offset="50%" stopColor="#fef3c7" stopOpacity="0.7"/>
+              <stop offset="65%" stopColor="#fde68a" stopOpacity="0"/>
+              <stop offset="100%" stopColor="#fde68a" stopOpacity="0"/>
+            </linearGradient>
+          )}
+          {/* ── EDGE HIGHLIGHT: top-lit specular edge ── */}
+          {hasStreak && (
+            <linearGradient id={`${G}_edge`} x1="0.5" y1="0" x2="0.5" y2="1" gradientUnits="objectBoundingBox">
+              <stop offset="0%" stopColor="#fffbeb" stopOpacity="0.8"/>
+              <stop offset="30%" stopColor="#fde68a" stopOpacity="0.3"/>
+              <stop offset="100%" stopColor="#92400e" stopOpacity="0"/>
+            </linearGradient>
+          )}
+          {/* ── WARM GLOW behind text ── */}
+          {hasStreak && (
+            <radialGradient id={`${G}_glow`} cx="50%" cy="45%" r="35%">
+              <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.3">
+                <animate attributeName="stop-opacity" values="0.3;0.15;0.3" dur="4s" repeatCount="indefinite"/>
+              </stop>
+              <stop offset="100%" stopColor="#f59e0b" stopOpacity="0"/>
+            </radialGradient>
+          )}
         </defs>
+
         {/* Background track */}
         <circle cx={cx} cy={cy} r={r} fill="none" stroke={t.ringTrack} strokeWidth="8" opacity="0.8"/>
         {/* Progress arc */}
-        <circle cx={cx} cy={cy} r={r} fill="none" stroke={`url(#${gradId})`} strokeWidth="8" strokeLinecap="round"
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke={`url(#${G}_ring)`} strokeWidth="8" strokeLinecap="round"
           strokeDasharray={`${strokeDash} ${circumference}`}
           transform={`rotate(-90 ${cx} ${cy})`}
           style={{transition:"stroke-dasharray 1s cubic-bezier(0.4,0,0.2,1)"}}
@@ -472,20 +547,81 @@ function ScoreRing({ score, maxScore, label, icon, color, secondaryScore, second
         {secondaryScore !== undefined && (
           <>
             <circle cx={cx} cy={cy} r={r2} fill="none" stroke={t.ringTrack} strokeWidth="6" opacity="0.5"/>
-            <circle cx={cx} cy={cy} r={r2} fill="none" stroke={`url(#${gradId+"2"})`} strokeWidth="6" strokeLinecap="round"
+            <circle cx={cx} cy={cy} r={r2} fill="none" stroke={`url(#${G}_ring2)`} strokeWidth="6" strokeLinecap="round"
               strokeDasharray={`${strokeDash2} ${circumference2}`}
               transform={`rotate(-90 ${cx} ${cy})`}
               style={{transition:"stroke-dasharray 1s cubic-bezier(0.4,0,0.2,1)"}}
             />
           </>
         )}
-        {/* Center content */}
-        <text x={cx} y={cy-6} textAnchor="middle" fill={goldNumber ? `url(#${goldGradId})` : t.text} fontSize="28" fontWeight="800" fontFamily="'SF Pro Display',-apple-system,sans-serif"
-          style={goldNumber ? {filter:"drop-shadow(0 0 6px rgba(251,191,36,0.4))"} : {}}>
-          {score}
-        </text>
-        <text x={cx} y={cy+14} textAnchor="middle" fill={goldNumber ? "#fbbf24" : t.textSub} fontSize="10" fontWeight="500" letterSpacing="1.5">{label}</text>
+
+        {/* ── CENTER NUMBER ── */}
+        {goldNumber && isZero ? (
+          /* Zero streak: flat muted black */
+          <text x={cx} y={cy-4} textAnchor="middle" dominantBaseline="central"
+            fill={t.textMuted} fontSize="32" fontWeight="800"
+            fontFamily="'SF Pro Display',-apple-system,sans-serif"
+            style={{opacity:0.4}}>
+            {score}
+          </text>
+        ) : goldNumber && hasStreak ? (
+          <>
+            {/* Warm ambient glow circle */}
+            <circle cx={cx} cy={cy-4} r="22" fill={`url(#${G}_glow)`}/>
+            {/* Layer 1: Dark shadow for 3D depth */}
+            <text x={cx+1.5} y={cy-2.5} textAnchor="middle" dominantBaseline="central"
+              fill="#451a03" fontSize="32" fontWeight="800"
+              fontFamily="'SF Pro Display',-apple-system,sans-serif"
+              opacity="0.5"/>
+            {/* Layer 2: Base gold metallic gradient — the main colour */}
+            <text x={cx} y={cy-4} textAnchor="middle" dominantBaseline="central"
+              fill={`url(#${G}_base)`} fontSize="32" fontWeight="800"
+              fontFamily="'SF Pro Display',-apple-system,sans-serif"
+              style={{filter:"drop-shadow(0 1px 3px rgba(120,53,15,0.6)) drop-shadow(0 0 12px rgba(251,191,36,0.35))"}}>
+              {score}
+            </text>
+            {/* Layer 3: Sweeping shimmer highlight — animated moving shine */}
+            <text x={cx} y={cy-4} textAnchor="middle" dominantBaseline="central"
+              fill={`url(#${G}_shimmer)`} fontSize="32" fontWeight="800"
+              fontFamily="'SF Pro Display',-apple-system,sans-serif"
+              opacity="0.85"
+              style={{mixBlendMode:"screen"}}>
+              {score}
+            </text>
+            {/* Layer 3b: Second shimmer pass offset for richness */}
+            <text x={cx} y={cy-4} textAnchor="middle" dominantBaseline="central"
+              fill={`url(#${G}_shimmer2)`} fontSize="32" fontWeight="800"
+              fontFamily="'SF Pro Display',-apple-system,sans-serif"
+              opacity="0.6"
+              style={{mixBlendMode:"screen"}}>
+              {score}
+            </text>
+            {/* Layer 4: Top edge specular highlight for 3D bevel */}
+            <text x={cx} y={cy-4} textAnchor="middle" dominantBaseline="central"
+              fill={`url(#${G}_edge)`} fontSize="32" fontWeight="800"
+              fontFamily="'SF Pro Display',-apple-system,sans-serif"
+              style={{mixBlendMode:"overlay",opacity:0.7}}>
+              {score}
+            </text>
+          </>
+        ) : (
+          <text x={cx} y={cy-4} textAnchor="middle" dominantBaseline="central"
+            fill={t.text} fontSize="32" fontWeight="800"
+            fontFamily="'SF Pro Display',-apple-system,sans-serif">
+            {score}
+          </text>
+        )}
+        <text x={cx} y={cy+18} textAnchor="middle"
+          fill={hasStreak ? "#fbbf24" : isZero && goldNumber ? t.textMuted : t.textSub}
+          fontSize="10" fontWeight="500" letterSpacing="1.5">{label}</text>
       </svg>
+      <style>{`
+        @keyframes ${G}_burst {
+          0% { transform: translate(-50%,-50%) scale(0.3); opacity: 0; }
+          30% { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+          100% { transform: translate(-50%,-50%) scale(1.5); opacity: 0; }
+        }
+      `}</style>
     </div>
   );
 }
@@ -522,6 +658,7 @@ function CalendarView({ logs, ouraData, tree, mtProgress, t, period }) {
   };
 
   // Check if a date string has activity
+  const DATA_START_DATE = "2026-02-19";
   const hasActivity = dateStr => {
     const hasLog = logs.some(l=>l.date===dateStr && !isRestId(l.activity));
     const hasMT = Object.values(mtProgress).some(v=>v?.done && v?.date===dateStr);
@@ -542,15 +679,18 @@ function CalendarView({ logs, ouraData, tree, mtProgress, t, period }) {
         <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"10px"}}>
           {MONTHS.map((mName,mi) => {
             const mDim = new Date(yr,mi+1,0).getDate();
-            let active=0, total=0;
+            let active=0, total=0, hasAnyDataInRange=false;
             for (let d=1;d<=mDim;d++) {
               const dateStr = dsYr(mi,d);
               if (dateStr > tStr) continue;
               total++;
+              if (dateStr >= "2026-02-19") hasAnyDataInRange = true;
               if (hasActivity(dateStr)) active++;
             }
             const pct = total > 0 ? Math.round(active/total*100) : 0;
-            const barColor = pct >= 60 ? "#22c55e" : pct >= 30 ? "#eab308" : "#ef4444";
+            // Grey if no data tracking period, green for any positive progress
+            const noDataMonth = !hasAnyDataInRange && active === 0;
+            const barColor = noDataMonth ? "#6b7280" : active === 0 ? "#6b7280" : "#22c55e";
             return (
               <div key={mi} style={{padding:"8px",textAlign:"center",background:t.surface,borderRadius:"12px",border:"1px solid "+t.border}}>
                 <div style={{fontSize:"12px",fontWeight:"600",color:t.text,marginBottom:"6px"}}>{String(mName).slice(0,3)}</div>
@@ -575,10 +715,12 @@ function CalendarView({ logs, ouraData, tree, mtProgress, t, period }) {
   const selMT=sel?mtOnDate(ds(sel)):[];
   const calTouch = useRef(null);
   const [slideDir, setSlideDir] = useState(null); // "left" | "right" | null
+  const [swipeOffset, setSwipeOffset] = useState(0); // pixel offset during swipe
 
   const goMonth = (dir) => {
     setSel(null);
     setSlideDir(dir === 1 ? "left" : "right");
+    setSwipeOffset(0);
     setTimeout(() => {
       setVd(new Date(yr, mo + dir, 1));
       setSlideDir(null);
@@ -587,13 +729,28 @@ function CalendarView({ logs, ouraData, tree, mtProgress, t, period }) {
 
   return (
     <div
-      onTouchStart={e => { calTouch.current = e.touches[0].clientX; }}
+      onTouchStart={e => { calTouch.current = e.touches[0].clientX; setSwipeOffset(0); }}
+      onTouchMove={e => {
+        if (calTouch.current === null) return;
+        const diff = calTouch.current - e.touches[0].clientX;
+        // Clamp swipe offset and apply resistance at edges
+        if (diff > 0 && !canNext) {
+          setSwipeOffset(-diff * 0.2); // resistance
+        } else if (diff < 0) {
+          setSwipeOffset(-diff * 0.8);
+        } else {
+          setSwipeOffset(-diff * 0.8);
+        }
+      }}
       onTouchEnd={e => {
         if (calTouch.current === null) return;
         const diff = calTouch.current - e.changedTouches[0].clientX;
         if (Math.abs(diff) > 60) {
           if (diff > 0 && canNext) goMonth(1);
-          if (diff < 0) goMonth(-1);
+          else if (diff < 0) goMonth(-1);
+          else setSwipeOffset(0);
+        } else {
+          setSwipeOffset(0);
         }
         calTouch.current = null;
       }}
@@ -606,9 +763,9 @@ function CalendarView({ logs, ouraData, tree, mtProgress, t, period }) {
 
       {/* Animated grid container */}
       <div style={{
-        transform: slideDir === "left" ? "translateX(-30px)" : slideDir === "right" ? "translateX(30px)" : "translateX(0)",
-        opacity: slideDir ? 0.3 : 1,
-        transition: slideDir ? "none" : "all 0.25s cubic-bezier(0.4,0,0.2,1)",
+        transform: slideDir === "left" ? "translateX(-30px)" : slideDir === "right" ? "translateX(30px)" : swipeOffset !== 0 ? `translateX(${swipeOffset}px)` : "translateX(0)",
+        opacity: slideDir ? 0.3 : Math.max(0.4, 1 - Math.abs(swipeOffset) / 200),
+        transition: slideDir ? "none" : swipeOffset !== 0 ? "none" : "all 0.25s cubic-bezier(0.4,0,0.2,1)",
       }}>
       <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"3px",marginBottom:"3px"}}>
         {DAY_LABELS.map((d,i)=><div key={i} style={{textAlign:"center",fontSize:"12px",color:t.textMuted,padding:"3px 0"}}>{d}</div>)}
@@ -629,9 +786,11 @@ function CalendarView({ logs, ouraData, tree, mtProgress, t, period }) {
           // Determine fill color
           const hasActive = actDls.length > 0 || hasMT;
           const hasRest   = !!rst;
-          const missed    = isPastDay && !hasActive && !hasRest && !todC;
+          const isBeforeData = ds(d) < "2026-02-19";
+          const missed    = isPastDay && !hasActive && !hasRest && !todC && !isBeforeData;
+          const noData    = isPastDay && !hasActive && !hasRest && !todC && isBeforeData;
 
-          // Primary color: if multiple activities, use first one; rest=yellow; missed=red; future/today=surface
+          // Primary color: if multiple activities, use first one; rest=yellow; missed=red; noData=grey; future/today=surface
           let fillColor = null;
           if (hasActive) {
             // Use first activity's color (MT if present, else first log)
@@ -645,6 +804,8 @@ function CalendarView({ logs, ouraData, tree, mtProgress, t, period }) {
             fillColor = REST_TYPES.find(r=>r.id===rst.activity)?.color || "#eab308";
           } else if (missed) {
             fillColor = "#ef4444";
+          } else if (noData) {
+            fillColor = "#6b7280";
           }
 
           // Multiple activities → show as split halves
@@ -666,8 +827,8 @@ function CalendarView({ logs, ouraData, tree, mtProgress, t, period }) {
               display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
               cursor:"pointer", position:"relative", overflow:"hidden",
               transition:"all 0.2s cubic-bezier(0.4,0,0.2,1)",
-              opacity: missed ? 0.6 : 1,
-              boxShadow: isSel ? `0 0 12px ${t.accentGlow}` : fillColor && !missed ? `0 2px 8px ${fillColor}33` : "none",
+              opacity: missed ? 0.6 : noData ? 0.4 : 1,
+              boxShadow: isSel ? `0 0 12px ${t.accentGlow}` : fillColor && !missed && !noData ? `0 2px 8px ${fillColor}33` : "none",
             }}>
               {/* Multi-color split background */}
               {multiColor && (
@@ -698,10 +859,10 @@ function CalendarView({ logs, ouraData, tree, mtProgress, t, period }) {
       {/* Legend */}
       <div style={{display:"flex",gap:"10px",marginTop:"12px",flexWrap:"wrap",justifyContent:"center"}}>
         {[
-          [t.accent,"Active"],
+          ["#22c55e","Active"],
           [t.danger,"Missed"],
           [t.warn,"Rest"],
-          [t.ringTrack,"No data"],
+          ["#6b7280","No data"],
         ].map(([bg,lbl])=>(
           <div key={lbl} style={{display:"flex",alignItems:"center",gap:"5px",fontSize:"11px",color:t.textSub}}>
             <div style={{width:"8px",height:"8px",borderRadius:"50%",background:bg,boxShadow:bg!==t.ringTrack?`0 0 6px ${bg}40`:"none"}}/>
@@ -808,10 +969,6 @@ function ActivityManager({ tree, setTree, t }) {
 
   return (
     <div>
-      <p style={{fontSize:"14px",color:t.textSub,marginTop:0,lineHeight:"1.6"}}>
-        Type a name — icon and color are assigned automatically. Add sub-categories to any activity.
-      </p>
-
       {/* Add activity */}
       <Card t={t} style={{padding:"16px",marginBottom:"16px"}}>
         <Label t={t}>NEW ACTIVITY</Label>
@@ -1656,14 +1813,18 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
   })();
   const restDates    = new Set(filteredRest.map(l=>l.date));
 
-  // Days elapsed in the period (don't count future days)
+  // Days elapsed in the period (don't count future days, and don't count pre-tracking days as missed)
   const periodEnd    = win.end < now ? win.end : now;
   const msPerDay     = 864e5;
-  const elapsed      = Math.floor((periodEnd - win.start) / msPerDay) + 1;
+  const dataStartDate = new Date("2026-02-19T00:00:00");
+  const effectiveStart = win.start < dataStartDate ? dataStartDate : win.start;
+  const rawElapsed   = Math.floor((periodEnd - win.start) / msPerDay) + 1;
+  const trackingElapsed = effectiveStart <= periodEnd ? Math.floor((periodEnd - effectiveStart) / msPerDay) + 1 : 0;
+  const elapsed      = rawElapsed;
   const activeDays   = activeDates.size;
   const restDays     = [...restDates].filter(d=>!activeDates.has(d)).length; // rest-only days
-  const missedDays   = Math.max(0, elapsed - activeDays - restDays);
-  const pctActive    = elapsed > 0 ? Math.round(activeDays / elapsed * 100) : 0;
+  const missedDays   = Math.max(0, trackingElapsed - activeDays - restDays);
+  const pctActive    = trackingElapsed > 0 ? Math.round(activeDays / trackingElapsed * 100) : 0;
 
   // Activity counts
   const filteredCounts = (() => {
@@ -1700,8 +1861,9 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
       const isF = ds > todayStr();
       const act = activeDates.has(ds);
       const rst = restDates.has(ds) && !act;
-      const mis = !isF && !act && !rst;
-      // color: use first activity's color, or rest yellow, or missed red
+      const mis = !isF && !act && !rst && ds >= "2026-02-19";
+      const noData = !isF && !act && !rst && ds < "2026-02-19";
+      // color: use first activity's color, or rest yellow, or missed red, or no-data grey
       let color = null;
       if (act) {
         const first = filteredAct.find(l=>l.date===ds);
@@ -1709,7 +1871,8 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
         color = isMT ? MT_COLOR : first ? resolveActivity(first.activity, tree).color : t.accent;
       } else if (rst) color = "#eab308";
       else if (mis)   color = "#ef4444";
-      days.push({ d, ds, color, act, rst, mis, isF });
+      else if (noData) color = "#6b7280";
+      days.push({ d, ds, color, act, rst, mis, noData, isF });
     }
     return days;
   })();
@@ -1736,8 +1899,8 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
     return result;
   })();
 
-  // Score color
-  const scoreColor = pct => pct >= 80 ? "#22c55e" : pct >= 60 ? "#eab308" : "#ef4444";
+  // Score color - green for any positive progress, grey for no data
+  const scoreColor = pct => pct > 0 ? "#22c55e" : "#6b7280";
 
   return (
     <div>
@@ -1816,7 +1979,7 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
               <div>
                 <div style={{fontSize:"10px",color:t.textMuted,marginBottom:"6px",letterSpacing:"1.5px",fontWeight:"600"}}>ACTIVE DAYS</div>
                 <div style={{display:"flex",alignItems:"baseline",gap:"6px"}}>
-                  <span style={{fontSize:"48px",fontWeight:"800",color:scoreColor(pctActive),lineHeight:1,letterSpacing:"-2px",textShadow:`0 0 30px ${scoreColor(pctActive)}33`}}>{activeDays}</span>
+                  <span style={{fontSize:"48px",fontWeight:"800",color:"#22c55e",lineHeight:1,letterSpacing:"-2px",textShadow:"0 0 30px rgba(34,197,94,0.2)"}}>{activeDays}</span>
                   <span style={{fontSize:"14px",color:t.textMuted,fontWeight:"400"}}>/ {elapsed}</span>
                 </div>
                 <div style={{fontSize:"12px",color:t.textSub,marginTop:"8px"}}>
@@ -1827,11 +1990,11 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
               </div>
               {/* Glowing circular score */}
               <div style={{position:"relative",width:"80px",height:"80px",flexShrink:0}}>
-                <svg width="80" height="80" viewBox="0 0 80 80" style={{filter:`drop-shadow(0 0 12px ${scoreColor(pctActive)}44)`}}>
+                <svg width="80" height="80" viewBox="0 0 80 80" style={{filter:"drop-shadow(0 0 12px rgba(34,197,94,0.27))"}}>
                   <defs>
                     <linearGradient id="statsRingGrad" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stopColor={scoreColor(pctActive)} stopOpacity="1"/>
-                      <stop offset="100%" stopColor={scoreColor(pctActive)} stopOpacity="0.4"/>
+                      <stop offset="0%" stopColor="#22c55e" stopOpacity="1"/>
+                      <stop offset="100%" stopColor="#22c55e" stopOpacity="0.4"/>
                     </linearGradient>
                   </defs>
                   <circle cx="40" cy="40" r="33" fill="none" stroke={t.surface2} strokeWidth="6" opacity="0.4"/>
@@ -1844,7 +2007,7 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
                   />
                 </svg>
                 <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
-                  <span style={{fontSize:"18px",fontWeight:"800",color:scoreColor(pctActive),letterSpacing:"-0.5px"}}>{pctActive}%</span>
+                  <span style={{fontSize:"18px",fontWeight:"800",color:"#22c55e",letterSpacing:"-0.5px"}}>{pctActive}%</span>
                 </div>
               </div>
             </div>
@@ -1852,7 +2015,7 @@ function StatsView({ logs, actLogs, restLogs, tree, ouraData, hasOura, streak, a
             {/* Day breakdown pills */}
             <div style={{display:"flex",gap:"8px"}}>
               {[
-                {label:"Active",  value:activeDays, color:t.accent},
+                {label:"Active",  value:activeDays, color:"#22c55e"},
                 {label:"Rest",    value:restDays,   color:"#fbbf24"},
                 {label:"Missed",  value:missedDays, color:t.danger||"#f87171"},
               ].map(item=>(
@@ -2048,9 +2211,9 @@ function SupplementsView({ suppLogs, setSuppLogs, t, period }) {
       {/* Stats row — Oura-style big numbers */}
       <div style={{display:"flex",gap:"8px",marginBottom:"16px"}}>
         {[
-          {value: suppStreak+"d", label:"Streak", color: suppStreak > 0 ? "#fbbf24" : t.textMuted},
-          {value: monthStats.suppTakenPct+"%", label:"💊 Taken", color: monthStats.suppTakenPct >= 80 ? t.success||"#34d399" : monthStats.suppTakenPct >= 50 ? "#fbbf24" : t.danger||"#f87171"},
-          {value: monthStats.creatineTakenPct+"%", label:"⚡ Taken", color: monthStats.creatineTakenPct >= 80 ? t.success||"#34d399" : monthStats.creatineTakenPct >= 50 ? "#fbbf24" : t.danger||"#f87171"},
+          {value: suppStreak+"d", label:"Streak", color: suppStreak > 0 ? "#22c55e" : t.textMuted},
+          {value: monthStats.suppTakenPct+"%", label:"💊 Taken", color: monthStats.suppTakenPct > 0 ? "#22c55e" : t.textMuted},
+          {value: monthStats.creatineTakenPct+"%", label:"⚡ Taken", color: monthStats.creatineTakenPct > 0 ? "#22c55e" : t.textMuted},
         ].map(s=>(
           <Card t={t} key={s.label} style={{flex:1,padding:"16px 8px",textAlign:"center"}}>
             <div style={{fontSize:"20px",fontWeight:"800",color:s.color,letterSpacing:"-0.5px",textShadow:`0 0 16px ${s.color}22`}}>{s.value}</div>
@@ -2468,7 +2631,7 @@ export default function ActivityTracker() {
       <div style={{position:"fixed",top:"-120px",right:"-80px",width:"300px",height:"300px",borderRadius:"50%",background:t.orbA,filter:"blur(80px)",pointerEvents:"none",zIndex:0}}/>
       <div style={{position:"fixed",bottom:"100px",left:"-100px",width:"250px",height:"250px",borderRadius:"50%",background:t.orbB,filter:"blur(80px)",pointerEvents:"none",zIndex:0}}/>
       {/* Content */}
-      <div style={{flex:1,overflowY:"auto",padding:"12px 20px 96px",position:"relative",zIndex:1}}>
+      <div data-scroll-container style={{flex:1,overflowY:"auto",padding:"12px 20px 96px",position:"relative",zIndex:1}}>
 
         {/* ── LOG ── */}
         {view==="log"&&(
@@ -2829,7 +2992,7 @@ export default function ActivityTracker() {
               position:"relative",
             }}>
               {/* Ambient glow behind ring */}
-              <div style={{position:"absolute",top:"20px",left:"50%",transform:"translateX(-50%)",width:"180px",height:"180px",borderRadius:"50%",background:"radial-gradient(circle, rgba(245,158,11,0.12) 0%, transparent 70%)",pointerEvents:"none"}}/>
+              <div style={{position:"absolute",top:"20px",left:"50%",transform:"translateX(-50%)",width:"180px",height:"180px",borderRadius:"50%",background: streak > 0 ? "radial-gradient(circle, rgba(245,158,11,0.12) 0%, transparent 70%)" : "none",pointerEvents:"none",transition:"background 1s ease"}}/>
               
               <ScoreRing
                 key={ringKey}
@@ -2837,6 +3000,7 @@ export default function ActivityTracker() {
                 maxScore={Math.max(streak, 30)}
                 label="DAY STREAK"
                 color="#f59e0b"
+                ringColor={t.accent}
                 goldNumber={true}
                 secondaryScore={actLogs.filter(l => {
                   const d = new Date(l.date+"T12:00:00");
@@ -2847,7 +3011,7 @@ export default function ActivityTracker() {
                 secondaryColor={t.success || "#34d399"}
                 size={170}
                 t={t}
-              />}
+              />
               
               {/* Stats row beneath ring */}
               <div style={{display:"flex",gap:"24px",marginTop:"20px",justifyContent:"center"}}>
@@ -2984,7 +3148,7 @@ export default function ActivityTracker() {
           const isActive = view===tab.id;
           const color = isActive ? t.accent : t.textMuted;
           return (
-          <button key={tab.id} onClick={()=>{if(tab.id==="theme"){toggleDark();}else{setView(tab.id);if(tab.id==="calendar")setRingKey(k=>k+1);}}} style={{
+          <button key={tab.id} onClick={()=>{if(tab.id==="theme"){toggleDark();}else{setView(tab.id);if(tab.id==="calendar")setRingKey(k=>k+1);window.scrollTo(0,0);const scrollEl=document.querySelector('[data-scroll-container]');if(scrollEl)scrollEl.scrollTop=0;}}} style={{
             background:"none",border:"none",cursor:"pointer",
             display:"flex",flexDirection:"column",alignItems:"center",gap:"2px",padding:"4px 0",
             transform: isFeatured ? "scale(1.15)" : "none",
